@@ -1,8 +1,4 @@
-github.com/cyberphone/json-canonicalization v0.0.0-20231217050601-ba74d44ecf5f h1:eHnXnuK47UlSTOQexbzxAZfekVz6i+LKRdj1CU5DPaM=
 github.com/cyberphone/json-canonicalization v0.0.0-20231217050601-ba74d44ecf5f/go.mod h1:uzvlm1mxhHkdfqitSA92i7Se+S9ksOn3a3qmv/kyOCw=
-github.com/gofrs/uuid/v5 v5.0.0 h1:p544++a97kEL+svbcFbCQVM9KFu0Yo25UoISXGNNH9M=
 github.com/gofrs/uuid/v5 v5.0.0/go.mod h1:CDOjlDMVAtN56jqyRUZh58JT31Tiw7/oQyEXZV+9bD8=
-github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 h1:lZUw3E0/J3roVtGQ+SCrUrg3ON6NgVqpn3+iol9aGu4=
 github.com/santhosh-tekuri/jsonschema/v5 v5.3.1/go.mod h1:uToXkOrWAZ6/Oc07xWQrPOhJotwFIyu2bBVN41fcDUY=
-go.jetpack.io/typeid v1.0.0 h1:8gQ+iYGdyiQ0Pr40ydSB/PzMOIwlXX5DTojp1CBeSPQ=
 go.jetpack.io/typeid v1.0.0/go.mod h1:+UPEaECUgFxgAjFPn5Yf9eO/3ft/3xZ98Eahv9JW/GQ=
