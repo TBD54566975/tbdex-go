@@ -8,8 +8,9 @@
 *.so
 *.dylib
 
-# Test binary, built with `go test -c`
+# Test related
 *.test
+report.xml
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
@@ -19,3 +20,8 @@
 
 # Go workspace file
 go.work
+go.work.sum
+
+.vscode/
+.hermit/
+.idea/
