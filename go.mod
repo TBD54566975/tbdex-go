@@ -1,4 +1,4 @@
-module tbdex-go
+module github.com/TBD54566975/tbdex-go
 
 go 1.21.6
 
