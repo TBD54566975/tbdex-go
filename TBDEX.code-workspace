@@ -1,0 +1,31 @@
+{
+    "folders": [
+        {
+            "path": "protocol"
+        },
+        {
+            "path": "httpclient"
+        },
+        {
+            "path": "."
+        }
+    ],
+    "extensions": {
+        "recommendations": [
+            "golang.go"
+        ]
+    },
+    "settings": {
+        "files.exclude": {
+            "**/.git": true,
+            "**/CVS": true,
+            "**/.DS_Store": true,
+            "**/Thumbs.db": true,
+            "**/_ftl": true,
+            "**/node_modules": true,
+            "**/go.work": true,
+            "**/go.work.sum": true,
+            ".hermit": true
+          }
+    }
+  }

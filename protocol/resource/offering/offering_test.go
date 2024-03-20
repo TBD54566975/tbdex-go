@@ -11,7 +11,7 @@ import (
 )
 
 func TestOffering(t *testing.T) {
-	o, err := offering.New(
+	o, err := offering.Create(
 		offering.PayinDetails{
 			CurrencyCode: "USD",
 			Methods: []offering.PayinMethod{

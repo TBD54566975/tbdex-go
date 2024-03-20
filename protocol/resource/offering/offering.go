@@ -62,48 +62,46 @@ type PayoutMethod struct {
 	EstimatedSettlementTime uint64 `json:"estimatedSettlementTime"`
 }
 
-type newOptions struct {
+type createOptions struct {
 	id          string
 	createdAt   time.Time
 	updatedAt   time.Time
 	description string
 }
 
-type NewOption func(*newOptions)
+type CreateOption func(*createOptions)
 
-func ID(id string) NewOption {
-	return func(o *newOptions) {
+func ID(id string) CreateOption {
+	return func(o *createOptions) {
 		o.id = id
 	}
 }
 
-func CreatedAt(t time.Time) NewOption {
-	return func(o *newOptions) {
+func CreatedAt(t time.Time) CreateOption {
+	return func(o *createOptions) {
 		o.createdAt = t
 	}
 }
 
-func UpdatedAt(t time.Time) NewOption {
-	return func(o *newOptions) {
+func UpdatedAt(t time.Time) CreateOption {
+	return func(o *createOptions) {
 		o.updatedAt = t
 	}
 }
 
-func Description(d string) NewOption {
-	return func(o *newOptions) {
+func Description(d string) CreateOption {
+	return func(o *createOptions) {
 		o.description = d
 	}
 }
 
-type NewPayin func() PayinDetails
-
-func New(payin PayinDetails, payout PayoutDetails, rate string, opts ...NewOption) (Offering, error) {
+func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
 	defaultID, err := typeid.WithPrefix(Kind)
 	if err != nil {
 		return Offering{}, fmt.Errorf("failed to generate default id: %w", err)
 	}
 
-	o := newOptions{
+	o := createOptions{
 		id:          defaultID.String(),
 		createdAt:   time.Now(),
 		updatedAt:   time.Now(),
