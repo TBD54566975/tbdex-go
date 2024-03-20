@@ -26,7 +26,7 @@ func TestOffering(t *testing.T) {
 				},
 			},
 		},
-		"0.000032",
+		"0.000033",
 	)
 
 	assert.NoError(t, err)
