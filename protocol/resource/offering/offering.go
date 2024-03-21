@@ -20,6 +20,7 @@ type Offering struct {
 	Signature         string `json:"signature"`
 }
 
+// Data represents the data of an Offering.
 type Data struct {
 	Description string        `json:"description"`
 	Rate        string        `json:"payoutUnitsPerPayinUnit"`
@@ -27,6 +28,7 @@ type Data struct {
 	Payout      PayoutDetails `json:"payout,omitempty"`
 }
 
+// PayinDetails represents the details of the payin part of an Offering.
 type PayinDetails struct {
 	CurrencyCode string        `json:"currencyCode"`
 	Min          string        `json:"min,omitempty"`
@@ -34,6 +36,7 @@ type PayinDetails struct {
 	Methods      []PayinMethod `json:"methods,omitempty"`
 }
 
+// PayoutDetails represents the details of the payout part of an Offering.
 type PayoutDetails struct {
 	CurrencyCode string         `json:"currencyCode"`
 	Min          string         `json:"min,omitempty"`
