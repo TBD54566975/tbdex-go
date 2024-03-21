@@ -8,7 +8,6 @@ import (
 	"github.com/TBD54566975/tbdex-go/protocol/resource"
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
-	"github.com/tbd54566975/web5-go/jws"
 )
 
 // Kind distinguishes between different resource kinds
@@ -65,14 +64,15 @@ type PayoutMethod struct {
 	PaymentMethod
 	EstimatedSettlementTime uint64 `json:"estimatedSettlementTime"`
 }
+
 // Digest computes a hash of the resource
 // A digest is the output of the hash function. It's a fixed-size string of bytes
-//    * that uniquely represents the data input into the hash function. The digest is often used for
-//    * data integrity checks, as any alteration in the input data results in a significantly
-//    * different digest.
-//    *
-//    * It takes the algorithm identifier of the hash function and data to digest as input and returns
-//    * the digest of the data.
+//   - that uniquely represents the data input into the hash function. The digest is often used for
+//   - data integrity checks, as any alteration in the input data results in a significantly
+//   - different digest.
+//     *
+//   - It takes the algorithm identifier of the hash function and data to digest as input and returns
+//   - the digest of the data.
 func (o Offering) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": o.Metadata, "data": o.Data}
 	payloadBytes, err := json.Marshal(payload)
@@ -96,20 +96,15 @@ func (o Offering) Digest() ([]byte, error) {
 }
 
 // Sign cryptographically signs the Resource using DID's private key
-func (o Offering) Sign(bearerDID did.BearerDID) (Offering, error) {
+func (o Offering) Sign(bearerDID did.BearerDID) error {
 	o.From = bearerDID.URI
 
-	digest, err := o.Digest()
+	signature, err := resource.Sign(o, bearerDID)
 	if err != nil {
-		return Offering{}, fmt.Errorf("failed to sign offering: %w", err)
-	}
-
-	signature, err := jws.Sign(digest, bearerDID, jws.DetachedPayload(true))
-	if err != nil {
-		return Offering{}, fmt.Errorf("failed to sign offering: %w", err)
+		return fmt.Errorf("failed to sign offering: %w", err)
 	}
 
 	o.Signature = signature
 
-	return o, nil
+	return nil
 }
