@@ -1,7 +1,6 @@
 package offering_test
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -26,8 +25,4 @@ func TestOffering(t *testing.T) {
 	)
 
 	assert.NoError(t, err)
-	j, err := json.MarshalIndent(o, "", "  ")
-	assert.NoError(t, err)
-
-	t.Log(string(j))
 }
