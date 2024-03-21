@@ -69,7 +69,7 @@ func TestParse(t *testing.T) {
 		),
 		"1.0",
 	)
-	bearerDID, err := didjwk.Create()
+	bearerDID, _ := didjwk.Create()
 	_ = offering.Sign(bearerDID)
 
 	jsonBytes, _ := json.Marshal(offering)

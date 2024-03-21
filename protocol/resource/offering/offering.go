@@ -109,6 +109,7 @@ func (o Offering) Sign(bearerDID did.BearerDID) error {
 	return nil
 }
 
+// Parses a json string into a typed Offering
 func (o Offering) Parse(offeringJSON string) (Offering, error) {
 	var offering Offering
 	err := json.Unmarshal([]byte(offeringJSON), &offering)
