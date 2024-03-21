@@ -78,5 +78,5 @@ func TestParse(t *testing.T) {
 	parsedOffering, err := offering.Parse(offeringString)
 	assert.NoError(t, err)
 
-	reflect.DeepEqual(offering, parsedOffering)
+	assert.True(t, reflect.DeepEqual(offering, parsedOffering))
 }
