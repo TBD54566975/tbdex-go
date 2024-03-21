@@ -32,11 +32,11 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 	}
 
 	if len(payin.Methods) == 0 {
-		return Offering{}, errors.New("1 payin method is required.")
+		return Offering{}, errors.New("1 payin method is required")
 	}
 
 	if len(payout.Methods) == 0 {
-		return Offering{}, errors.New("1 payout method is required.")
+		return Offering{}, errors.New("1 payout method is required")
 	}
 
 	return Offering{
@@ -190,6 +190,7 @@ func WithPayin(currencyCode string, payinMethod PayinMethod, opts ...PayinOption
 // PayoutOption implements functional options pattern for [PayoutDetails].
 type PayoutOption func(*PayoutDetails)
 
+// WithPayoutMin can be passed to [Create] to provide a custom min payout amount.
 func WithPayoutMin(min string) PayoutOption {
 	return func(p *PayoutDetails) {
 		p.Min = min

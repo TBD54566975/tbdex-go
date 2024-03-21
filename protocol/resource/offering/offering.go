@@ -11,6 +11,7 @@ import (
 	"github.com/tbd54566975/web5-go/jws"
 )
 
+// Kind distinguishes between different resource kinds
 const Kind = "offering"
 
 // Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
@@ -44,6 +45,7 @@ type PayoutDetails struct {
 	Methods      []PayoutMethod `json:"methods,omitempty"`
 }
 
+// PaymentMethod represents a single payment option on an Offering.
 type PaymentMethod struct {
 	Kind                   string `json:"kind"`
 	Name                   string `json:"name,omitempty"`
@@ -55,13 +57,22 @@ type PaymentMethod struct {
 	Max                    string `json:"max,omitempty"`
 }
 
+// PayinMethod is an alias for PaymentMethod.
 type PayinMethod = PaymentMethod
 
+// PayoutMethod contains all the fields from PaymentMethod, in addition to estimated settlement time.
 type PayoutMethod struct {
 	PaymentMethod
 	EstimatedSettlementTime uint64 `json:"estimatedSettlementTime"`
 }
-
+// Digest computes a hash of the resource
+// A digest is the output of the hash function. It's a fixed-size string of bytes
+//    * that uniquely represents the data input into the hash function. The digest is often used for
+//    * data integrity checks, as any alteration in the input data results in a significantly
+//    * different digest.
+//    *
+//    * It takes the algorithm identifier of the hash function and data to digest as input and returns
+//    * the digest of the data.
 func (o Offering) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": o.Metadata, "data": o.Data}
 	payloadBytes, err := json.Marshal(payload)
@@ -84,6 +95,7 @@ func (o Offering) Digest() ([]byte, error) {
 	return hasher.Sum(nil), nil
 }
 
+// Sign cryptographically signs the Resource using DID's private key
 func (o Offering) Sign(bearerDID did.BearerDID) (Offering, error) {
 	o.From = bearerDID.URI
 

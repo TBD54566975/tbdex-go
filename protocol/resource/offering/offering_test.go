@@ -18,7 +18,7 @@ func TestOffering(t *testing.T) {
 			"USDC",
 			offering.WithPayoutMethod(
 				"STORED_BALANCE",
-				time.Duration(20*time.Minute),
+				20*time.Minute,
 			),
 		),
 		"1.0",
