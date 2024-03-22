@@ -12,10 +12,11 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           submodules: 'true'
+
       - name: Init Hermit
         uses: cashapp/activate-hermit@v1
         with:
