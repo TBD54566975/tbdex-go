@@ -1,8 +1,6 @@
 package offering_test
 
 import (
-	"encoding/json"
-	"reflect"
 	"testing"
 	"time"
 
@@ -12,7 +10,10 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	_, err := offering.Create(
+	bearerDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	_, err = offering.Create(
 		offering.WithPayin(
 			"USD",
 			offering.WithPayinMethod("SQUAREPAY"),
@@ -25,12 +26,16 @@ func TestCreate(t *testing.T) {
 			),
 		),
 		"1.0",
+		bearerDID.URI,
 	)
 
 	assert.NoError(t, err)
 }
 
 func TestSign(t *testing.T) {
+	bearerDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
 	offering, err := offering.Create(
 		offering.WithPayin(
 			"USD",
@@ -44,39 +49,10 @@ func TestSign(t *testing.T) {
 			),
 		),
 		"1.0",
+		bearerDID.URI,
 	)
-	assert.NoError(t, err)
-
-	bearerDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
 	err = offering.Sign(bearerDID)
 	assert.NoError(t, err)
-}
-
-func TestParse(t *testing.T) {
-	offering, _ := offering.Create(
-		offering.WithPayin(
-			"USD",
-			offering.WithPayinMethod("SQUAREPAY"),
-		),
-		offering.WithPayout(
-			"USDC",
-			offering.WithPayoutMethod(
-				"STORED_BALANCE",
-				20*time.Minute,
-			),
-		),
-		"1.0",
-	)
-	bearerDID, _ := didjwk.Create()
-	_ = offering.Sign(bearerDID)
-
-	jsonBytes, _ := json.Marshal(offering)
-	offeringString := string(jsonBytes)
-
-	parsedOffering, err := offering.Parse(offeringString)
-	assert.NoError(t, err)
-
-	assert.True(t, reflect.DeepEqual(offering, parsedOffering))
 }

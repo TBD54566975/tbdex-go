@@ -1,4 +1,4 @@
-package resource
+package message
 
 import (
 	"fmt"
@@ -7,22 +7,24 @@ import (
 	"github.com/tbd54566975/web5-go/jws"
 )
 
-// Metadata is the resource kind agnostic data
+// Metadata is the message kind agnostic data
 type Metadata struct {
-	From      string `json:"from"`
-	Kind      string `json:"kind"`
-	ID        string `json:"id"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt,omitempty"`
-	Protocol string `json:"protocol"`
+	From       string `json:"from"`
+	To         string `json:"to"`
+	Kind       string `json:"kind"`
+	ID         string `json:"id"`
+	ExchangeID string `json:"exchangeId"`
+	ExternalID string `json:"externalId,omitempty"`
+	CreatedAt  string `json:"createdAt"`
+	Protocol   string `json:"protocol"`
 }
 
-// Digester is an interface for resources that can be digested
+// Digester is an interface for messages that can be digested
 type Digester interface {
 	Digest() ([]byte, error)
 }
 
-// Sign signs a resource with a given bearerDID
+// Sign signs a message with a given bearerDID
 func Sign(digester Digester, bearerDID did.BearerDID) (string, error) {
 	digest, err := digester.Digest()
 	if err != nil {
