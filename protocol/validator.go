@@ -34,17 +34,22 @@ func init() {
 	for name, schemaObject := range schemas {
 		file, err := tbdex.EmbeddedFiles.Open(schemaObject.Path)
 		if err != nil {
+            file.Close()
 			fmt.Println("Failed to open schema file", err)
 		}
 
 		if err := compiler.AddResource(schemaObject.URL, file); err != nil {
+            file.Close()
 			fmt.Println("Failed to add schema file", err)
 		}
 
 		schema, err := compiler.Compile(schemas["resource"].URL)
 		if err != nil {
+            file.Close()
 			fmt.Println("Failed to compile schema", err)
 		}
+        
+        file.Close()
 		ValidatorMap[name] = schema
 	}
 }
