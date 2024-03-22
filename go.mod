@@ -5,9 +5,7 @@ go 1.22.1
 require (
 	github.com/alecthomas/assert/v2 v2.6.0
 	github.com/gowebpki/jcs v1.0.1
-	github.com/santhosh-tekuri/jsonschema v1.2.4
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
-	github.com/stretchr/testify v1.8.4
 	github.com/tbd54566975/web5-go v0.10.0
 	go.jetpack.io/typeid v1.0.0
 )

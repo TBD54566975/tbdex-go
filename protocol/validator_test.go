@@ -1,9 +1,6 @@
 package protocol
 
-import _ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
-
 import (
-	"bytes"
 	"encoding/json"
 	"os"
 	"testing"
@@ -11,7 +8,8 @@ import (
 
 	"github.com/TBD54566975/tbdex-go/protocol/resource/offering"
 	"github.com/alecthomas/assert"
-	"github.com/santhosh-tekuri/jsonschema"
+	"github.com/santhosh-tekuri/jsonschema/v5"
+	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 )
 
@@ -20,7 +18,6 @@ func TestValidator(t *testing.T) {
 	resourcePath := "../tbdex/hosted/json-schemas/resource.schema.json"
 
     definitionsFile, err := os.Open(definitionsPath)
-
     resourceFile, err := os.Open(resourcePath)
     if err != nil {
 		panic(err)
@@ -64,6 +61,50 @@ func TestValidator(t *testing.T) {
 	}
 
     // 4. Validate the JSON against the schema
-	err = schema.Validate(bytes.NewReader(offeringJSON))
+	var v interface{}
+	err = json.Unmarshal([]byte(offeringJSON), &v)
+    assert.NoError(t, err)
+
+	err = schema.Validate(v)
+    assert.NoError(t, err)
+}
+
+func TestCompiler(t *testing.T) {
+    compiler, err := Compiler()
+    assert.NoError(t, err)
+
+    bearerDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	offering, err := offering.Create(
+		offering.WithPayin(
+			"USD",
+			offering.WithPayinMethod("SQUAREPAY"),
+		),
+		offering.WithPayout(
+			"USDC",
+			offering.WithPayoutMethod(
+				"STORED_BALANCE",
+				20*time.Minute,
+			),
+		),
+		"1.0",
+        bearerDID.URI,
+	)
+
+    offeringJSON, err := json.Marshal(offering)
+	if err != nil {
+		panic(err)
+	}
+
+    // 4. Validate the JSON against the schema
+    schema, err := compiler.Compile(schemaPaths["resource"])
+    assert.NoError(t, err)
+
+    var v interface{}
+	err = json.Unmarshal([]byte(offeringJSON), &v)
+    assert.NoError(t, err)
+
+	err = schema.Validate(v)
     assert.NoError(t, err)
 }
