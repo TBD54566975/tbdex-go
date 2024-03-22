@@ -108,13 +108,3 @@ func (o Offering) Sign(bearerDID did.BearerDID) error {
 
 	return nil
 }
-
-// Unmarshal takes in a byte array and returns a typed Offering
-// func (o Offering) Validate() error {
-// 	var offering Offering
-// 	err := json.Unmarshal([]byte(offeringJSON), &offering)
-// 	if err != nil {
-// 		return Offering{}, err
-// 	}
-// 	return offering, nil
-// }

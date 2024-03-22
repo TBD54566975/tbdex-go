@@ -10,7 +10,7 @@ import (
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 )
 
-func TestCompiler(t *testing.T) {
+func TestValidator(t *testing.T) {
 	bearerDID, err := didjwk.Create()
 	assert.NoError(t, err)
 

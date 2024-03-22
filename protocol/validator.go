@@ -7,6 +7,7 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
+// ValidatorMap contains a map of json schema name to schema validator
 var ValidatorMap map[string]*jsonschema.Schema = make(map[string]*jsonschema.Schema)
 
 type schemaObject struct {
