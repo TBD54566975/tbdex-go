@@ -14,7 +14,7 @@ import (
 // An Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 //
 // [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#offering
-func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
+func Create(payin PayinDetails, payout PayoutDetails, rate string, from string, opts ...CreateOption) (Offering, error) {
 	defaultID, err := typeid.WithPrefix(Kind)
 	if err != nil {
 		return Offering{}, fmt.Errorf("failed to generate default id: %w", err)
@@ -25,6 +25,7 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 		createdAt:   time.Now(),
 		updatedAt:   time.Now(),
 		description: fmt.Sprintf("%s for %s", payout.CurrencyCode, payin.CurrencyCode),
+		protocol: "1.0",
 	}
 
 	for _, opt := range opts {
@@ -43,6 +44,7 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 		Metadata: resource.Metadata{
 			Kind:      Kind,
 			ID:        o.id,
+			From: from,
 			CreatedAt: o.createdAt.UTC().Format(time.RFC3339),
 			UpdatedAt: o.updatedAt.UTC().Format(time.RFC3339),
 		},
@@ -60,6 +62,7 @@ type createOptions struct {
 	createdAt   time.Time
 	updatedAt   time.Time
 	description string
+	protocol string
 }
 
 // CreateOption implements functional options pattern for [Create].

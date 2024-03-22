@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/TBD54566975/tbdex-go/protocol/validator"
 	"github.com/TBD54566975/tbdex-go/protocol/resource"
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
@@ -106,5 +107,32 @@ func (o Offering) Sign(bearerDID did.BearerDID) error {
 
 	o.Signature = signature
 
+	return nil
+}
+
+// Validate validates an Offering byte array against the appropriate JSON schema
+func Validate(offeringJSON []byte) error {
+
+	var v interface{}
+	if err := json.Unmarshal(offeringJSON, &v); err != nil {
+		return err
+	}
+
+	schema := validator.ValidatorMap["resource"]
+	if err := schema.Validate(v); err != nil {
+		return err
+	}
+
+	var offeringMap map[string]any
+	if err := json.Unmarshal(offeringJSON, &offeringMap); err != nil {
+		return err
+
+	}
+
+	schema = validator.ValidatorMap["offering"]
+	if err := schema.Validate(offeringMap["data"]); err != nil {
+
+		return err
+	}
 	return nil
 }

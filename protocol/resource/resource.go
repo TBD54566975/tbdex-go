@@ -14,6 +14,7 @@ type Metadata struct {
 	ID        string `json:"id"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt,omitempty"`
+	Protocol string `json:"protocol"`
 }
 
 // Digester is an interface for resources that can be digested

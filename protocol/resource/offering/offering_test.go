@@ -1,6 +1,7 @@
 package offering_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -9,8 +10,11 @@ import (
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 )
 
-func TestOffering(t *testing.T) {
-	_, err := offering.Create(
+func TestCreate(t *testing.T) {
+	bearerDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	_, err = offering.Create(
 		offering.WithPayin(
 			"USD",
 			offering.WithPayinMethod("SQUAREPAY"),
@@ -23,12 +27,16 @@ func TestOffering(t *testing.T) {
 			),
 		),
 		"1.0",
+		bearerDID.URI,
 	)
 
 	assert.NoError(t, err)
 }
 
 func TestSign(t *testing.T) {
+	bearerDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
 	offering, err := offering.Create(
 		offering.WithPayin(
 			"USD",
@@ -42,12 +50,36 @@ func TestSign(t *testing.T) {
 			),
 		),
 		"1.0",
+		bearerDID.URI,
 	)
 	assert.NoError(t, err)
 
-	bearerDID, err := didjwk.Create()
+	err = offering.Sign(bearerDID)
+	assert.NoError(t, err)
+}
+
+func TestValidate(t *testing.T) {
+	bearerDID, _ := didjwk.Create()
+
+	offeringMessage, _ := offering.Create(
+		offering.WithPayin(
+			"USD",
+			offering.WithPayinMethod("SQUAREPAY"),
+		),
+		offering.WithPayout(
+			"USDC",
+			offering.WithPayoutMethod(
+				"STORED_BALANCE",
+				20*time.Minute,
+			),
+		),
+		"1.0",
+		bearerDID.URI,
+	)
+
+	offeringJSON, err := json.Marshal(offeringMessage)
 	assert.NoError(t, err)
 
-	err = offering.Sign(bearerDID)
+	err = offering.Validate(offeringJSON)
 	assert.NoError(t, err)
 }
