@@ -3,6 +3,7 @@ package protocol
 import (
 	"fmt"
 
+	"github.com/TBD54566975/tbdex-go"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
@@ -22,7 +23,7 @@ var schemas = map[string]schemaObject{
 	"message":     {"https://tbdex.dev/message.schema.json", "tbdex/hosted/json-schemas/message.schema.json"},
 	"order":       {"https://tbdex.dev/order.schema.json", "tbdex/hosted/json-schemas/order.schema.json"},
 	"orderstatus": {"https://tbdex.dev/orderstatus.schema.json", "tbdex/hosted/json-schemas/orderstatus.schema.json"},
-	"quote":       {"https://tbdex.dev/Quote.schema.json", "tbdex/hosted/json-schemas/Quote.schema.json"},
+	"quote":       {"https://tbdex.dev/quote.schema.json", "tbdex/hosted/json-schemas/quote.schema.json"},
 	"rfq":         {"https://tbdex.dev/rfq.schema.json", "tbdex/hosted/json-schemas/rfq.schema.json"},
 	"close":       {"https://tbdex.dev/close.schema.json", "tbdex/hosted/json-schemas/close.schema.json"},
 }
@@ -31,7 +32,7 @@ func init() {
 	compiler := jsonschema.NewCompiler()
 
 	for name, schemaObject := range schemas {
-		file, err := EmbeddedFiles.open()
+		file, err := tbdex.EmbeddedFiles.Open(schemaObject.Path)
 		if err != nil {
 			fmt.Println("Failed to open schema file", err)
 		}
