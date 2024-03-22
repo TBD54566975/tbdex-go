@@ -1,6 +1,7 @@
 package offering_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -54,5 +55,31 @@ func TestSign(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = offering.Sign(bearerDID)
+	assert.NoError(t, err)
+}
+
+func TestValidate(t *testing.T) {
+	bearerDID, _ := didjwk.Create()
+
+	offeringMessage, _ := offering.Create(
+		offering.WithPayin(
+			"USD",
+			offering.WithPayinMethod("SQUAREPAY"),
+		),
+		offering.WithPayout(
+			"USDC",
+			offering.WithPayoutMethod(
+				"STORED_BALANCE",
+				20*time.Minute,
+			),
+		),
+		"1.0",
+		bearerDID.URI,
+	)
+
+	offeringJSON, err := json.Marshal(offeringMessage)
+	assert.NoError(t, err)
+
+	err = offering.Validate(offeringJSON)
 	assert.NoError(t, err)
 }
