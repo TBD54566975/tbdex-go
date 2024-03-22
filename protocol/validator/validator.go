@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -11,40 +12,38 @@ import (
 // ValidatorMap contains a map of json schema name to schema validator
 var ValidatorMap map[string]*jsonschema.Schema = make(map[string]*jsonschema.Schema)
 
-var fileNames = []string{
-	"definitions.json",
-	"resource.schema.json",
-	"offering.schema.json",
-	"balance.schema.json",
-	"message.schema.json",
-	"order.schema.json",
-	"orderstatus.schema.json",
-	"quote.schema.json",
-	"rfq.schema.json",
-	"close.schema.json",
+type schemaFile struct {
+	Name string
+	Schema []byte
+}
+
+var schemaFiles = []schemaFile {
+	{"definitions.json", tbdex.DefinitionsSchema},
+	{"resource.schema.json", tbdex.ResourceSchema},
+	{"offering.schema.json", tbdex.OfferingSchema},
+	{"balance.schema.json", tbdex.BalanceSchema},
+	{"message.schema.json", tbdex.MessageSchema},
+	{"order.schema.json", tbdex.OrderSchema},
+	{"orderstatus.schema.json", tbdex.OrderStatusSchema},
+	{"quote.schema.json", tbdex.QuoteSchema},
+	{"rfq.schema.json", tbdex.RFQSchema},
+	{"close.schema.json", tbdex.CloseSchema},
 }
 
 func init() {
 	compiler := jsonschema.NewCompiler()
 
-    for _, name := range fileNames {
-        path := "tbdex/hosted/json-schemas/" + name
-		URL := "https://tbdex.dev/" + name
 
-        file, err := tbdex.EmbeddedFiles.Open(path)
-		if err != nil {
-            file.Close()
-			panic(fmt.Sprintf("Failed to open schema file: %s", err))
-		}
+    for _, schemaFile := range schemaFiles {
+		URL := "https://tbdex.dev/" + schemaFile.Name
 
-        if err := compiler.AddResource(URL, file); err != nil {
-            file.Close()
+		reader := bytes.NewReader(schemaFile.Schema)
+        if err := compiler.AddResource(URL, reader); err != nil {
 			panic(fmt.Sprintf("Failed to add schema file: %s", err))
 		}
 
-        file.Close()
 
-        if(name == "definitions.json") {
+        if(schemaFile.Name == "definitions.json") {
             continue
         }
 
@@ -53,6 +52,6 @@ func init() {
 			panic(fmt.Sprintf("Failed to compile schema: %s", err))
 		}
 
-		ValidatorMap[strings.Split(name, ".")[0]] = schema
+		ValidatorMap[strings.Split(schemaFile.Name, ".")[0]] = schema
     }
 }
