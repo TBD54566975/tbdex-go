@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/TBD54566975/tbdex-go/protocol/validator"
+	"github.com/TBD54566975/tbdex-go"
 	"github.com/TBD54566975/tbdex-go/protocol/resource"
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
@@ -118,7 +118,7 @@ func Validate(offeringJSON []byte) error {
 		return err
 	}
 
-	schema := validator.ValidatorMap["resource"]
+	schema := jsonvalidator.ValidatorMap["resource"]
 	if err := schema.Validate(v); err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func Validate(offeringJSON []byte) error {
 
 	}
 
-	schema = validator.ValidatorMap["offering"]
+	schema = jsonvalidator.ValidatorMap["offering"]
 	if err := schema.Validate(offeringMap["data"]); err != nil {
 
 		return err

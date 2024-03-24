@@ -1,4 +1,5 @@
-package validator
+package jsonvalidator
+
 
 import (
 	"encoding/json"
