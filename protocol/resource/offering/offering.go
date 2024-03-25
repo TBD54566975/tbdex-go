@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/TBD54566975/tbdex-go"
+	"github.com/TBD54566975/tbdex-go/protocol"
 	"github.com/TBD54566975/tbdex-go/protocol/resource"
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
@@ -110,29 +110,21 @@ func (o Offering) Sign(bearerDID did.BearerDID) error {
 	return nil
 }
 
-// Validate validates an Offering byte array against the appropriate JSON schema
-func Validate(offeringJSON []byte) error {
-
-	var v interface{}
-	if err := json.Unmarshal(offeringJSON, &v); err != nil {
-		return err
+func (o *Offering) UnmarshalJSON(data []byte) error {
+	err := protocol.Validate(protocol.TypeResource, data, protocol.WithKind(Kind))
+	if err != nil {
+		return fmt.Errorf("invalid offering: %w", err)
 	}
 
-	schema := jsonvalidator.ValidatorMap["resource"]
-	if err := schema.Validate(v); err != nil {
-		return err
+	off := offering{}
+	err = json.Unmarshal(data, &off)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal offering: %w", err)
 	}
 
-	var offeringMap map[string]any
-	if err := json.Unmarshal(offeringJSON, &offeringMap); err != nil {
-		return err
+	*o = Offering(off)
 
-	}
-
-	schema = jsonvalidator.ValidatorMap["offering"]
-	if err := schema.Validate(offeringMap["data"]); err != nil {
-
-		return err
-	}
 	return nil
 }
+
+type offering Offering
