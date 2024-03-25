@@ -1,4 +1,4 @@
-package resource
+package tbdex
 
 import (
 	"fmt"
@@ -6,16 +6,6 @@ import (
 	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/jws"
 )
-
-// Metadata is the resource kind agnostic data
-type Metadata struct {
-	From      string `json:"from"`
-	Kind      string `json:"kind"`
-	ID        string `json:"id"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt,omitempty"`
-	Protocol string `json:"protocol"`
-}
 
 // Digester is an interface for resources that can be digested
 type Digester interface {
