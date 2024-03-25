@@ -110,6 +110,7 @@ func (o Offering) Sign(bearerDID did.BearerDID) error {
 	return nil
 }
 
+// UnmarshalJSON validates and unmarshals the input data into an Offering.
 func (o *Offering) UnmarshalJSON(data []byte) error {
 	err := protocol.Validate(protocol.TypeResource, data, protocol.WithKind(Kind))
 	if err != nil {

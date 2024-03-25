@@ -76,7 +76,7 @@ func WithKind(kind string) ValidateOption {
 //
 // Note: Kind-specific schemas are lazily loaded the first time they are needed and then
 // cached for future use.
-func Validate(Type DataType, input []byte, opts ...ValidateOption) error {
+func Validate(dataType DataType, input []byte, opts ...ValidateOption) error {
 	var options validateOptions
 	for _, o := range opts {
 		o(&options)
