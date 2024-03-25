@@ -12,6 +12,6 @@ lint:
   @golangci-lint run
 
 # Copies JSON schemas from the tbdex submodule repo into the protocol dir.
-cp-schemas:
+schemas:
   @git submodule update --init --recursive
   @cp -r tbdex/hosted/json-schemas protocol/json-schemas
