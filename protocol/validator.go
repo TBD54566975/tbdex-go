@@ -10,7 +10,7 @@ import (
 )
 
 // DataType represents the type of data being validated e.g. resource or message
-type DataType = string
+type DataType string
 
 const (
 	TypeResource      DataType = "resource" // TypeResource represents tbdex resource
@@ -44,8 +44,8 @@ func init() {
 		panic(err)
 	}
 
-	for _, schemaName := range []string{TypeResource, TypeMessage} {
-		_, err = loadSchema(schemaName)
+	for _, schemaName := range []DataType{TypeResource, TypeMessage} {
+		_, err = loadSchema(string(schemaName))
 		if err != nil {
 			panic(err)
 		}
@@ -90,7 +90,7 @@ func Validate(dataType DataType, input []byte, opts ...ValidateOption) error {
 		return fmt.Errorf("failed to unmarshal input: %w", err)
 	}
 
-	typeSchema := schemaMap[dataType]
+	typeSchema := schemaMap[string(dataType)]
 	err = typeSchema.Validate(v)
 	if err != nil {
 		return fmt.Errorf("failed to validate input: %w", err)
