@@ -10,28 +10,28 @@ import (
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
-//go:embed tbdex/hosted/json-schemas/definitions.json
+//go:embed jsonschema/definitions.json
 var definitionsSchema []byte
 
-//go:embed tbdex/hosted/json-schemas/resource.schema.json
+//go:embed jsonschema/resource.schema.json
 var resourceSchema []byte
 
-//go:embed tbdex/hosted/json-schemas/offering.schema.json
+//go:embed jsonschema/offering.schema.json
 var offeringSchema []byte
 
-//go:embed tbdex/hosted/json-schemas/balance.schema.json
+//go:embed jsonschema/balance.schema.json
 var balanceSchema []byte
 
-//go:embed tbdex/hosted/json-schemas/message.schema.json
+//go:embed jsonschema/message.schema.json
 var messageSchema []byte
 
-//go:embed tbdex/hosted/json-schemas/rfq.schema.json
+//go:embed jsonschema/rfq.schema.json
 var rfqSchema []byte
 
-//go:embed tbdex/hosted/json-schemas/quote.schema.json
+//go:embed jsonschema/quote.schema.json
 var quoteSchema []byte
 
-//go:embed tbdex/hosted/json-schemas/order.schema.json
+//go:embed jsonschema/order.schema.json
 var orderSchema []byte
 
 //go:embed tbdex/hosted/json-schemas/close.schema.json

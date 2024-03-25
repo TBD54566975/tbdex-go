@@ -10,3 +10,6 @@ test-xml:
 lint:
     @echo "Running linter..."
     @golangci-lint run
+
+cp-schemas:
+  cp tbdex/hosted/json-schemas/* jsonschema
