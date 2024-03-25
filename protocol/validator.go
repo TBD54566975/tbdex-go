@@ -74,7 +74,7 @@ func WithKind(kind string) ValidateOption {
 // what was provided. This is useful when the Kind is known ahead of time. If the Kind is not
 // specified, validation will proceed to phase 2 using metadata.kind.
 //
-// Note
+// # Note
 //
 // Kind-specific schemas are lazily loaded the first time they are needed and then
 // cached for future use.
@@ -87,21 +87,21 @@ func Validate(dataType DataType, input []byte, opts ...ValidateOption) error {
 	var v any
 	err := json.Unmarshal(input, &v)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal resource: %w", err)
+		return fmt.Errorf("failed to unmarshal input: %w", err)
 	}
 
-	typeSchema := schemaMap[TypeResource]
+	typeSchema := schemaMap[dataType]
 	err = typeSchema.Validate(v)
 	if err != nil {
-		return fmt.Errorf("failed to validate resource: %w", err)
+		return fmt.Errorf("failed to validate input: %w", err)
 	}
 
-	resource, ok := v.(map[string]any)
+	entity, ok := v.(map[string]any)
 	if !ok {
-		return fmt.Errorf("expected resource to be an object: %w", err)
+		return fmt.Errorf("expected input to be an object: %w", err)
 	}
 
-	metadata, _ := resource["metadata"].(map[string]any)
+	metadata, _ := entity["metadata"].(map[string]any)
 	kind, _ := metadata["kind"].(string)
 
 	if options.kind != "" && kind != options.kind {
@@ -110,12 +110,12 @@ func Validate(dataType DataType, input []byte, opts ...ValidateOption) error {
 
 	kindSchema, err := loadSchema(kind)
 	if err != nil {
-		return fmt.Errorf("failed to validate resource: %w", err)
+		return fmt.Errorf("failed to validate input: %w", err)
 	}
 
-	err = kindSchema.Validate(resource["data"])
+	err = kindSchema.Validate(entity["data"])
 	if err != nil {
-		return fmt.Errorf("failed to validate resource: %w", err)
+		return fmt.Errorf("failed to validate input: %w", err)
 	}
 
 	return nil
