@@ -74,7 +74,9 @@ func WithKind(kind string) ValidateOption {
 // what was provided. This is useful when the Kind is known ahead of time. If the Kind is not
 // specified, validation will proceed to phase 2 using metadata.kind.
 //
-// Note: Kind-specific schemas are lazily loaded the first time they are needed and then
+// Note
+//
+// Kind-specific schemas are lazily loaded the first time they are needed and then
 // cached for future use.
 func Validate(dataType DataType, input []byte, opts ...ValidateOption) error {
 	var options validateOptions
