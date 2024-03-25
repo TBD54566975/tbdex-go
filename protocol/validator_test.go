@@ -7,7 +7,7 @@ import (
 	"github.com/alecthomas/assert/v2"
 )
 
-func TestValidate(t *testing.T) {
+func TestValidate_Invalid(t *testing.T) {
 	err := protocol.Validate(protocol.TypeResource, []byte(`{"foo": "bar"}`))
 	assert.Error(t, err)
 }
