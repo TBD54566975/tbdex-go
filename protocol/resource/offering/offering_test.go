@@ -58,10 +58,10 @@ func TestSign(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestValidate(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	bearerDID, _ := didjwk.Create()
 
-	offeringMessage, _ := offering.Create(
+	o, _ := offering.Create(
 		offering.WithPayin(
 			"USD",
 			offering.WithPayinMethod("SQUAREPAY"),
@@ -77,9 +77,19 @@ func TestValidate(t *testing.T) {
 		bearerDID.URI,
 	)
 
-	offeringJSON, err := json.Marshal(offeringMessage)
+	bytes, err := json.Marshal(o)
 	assert.NoError(t, err)
 
-	err = offering.Validate(offeringJSON)
+	var o2 offering.Offering
+	err = o2.UnmarshalJSON(bytes)
 	assert.NoError(t, err)
+}
+
+func TestUnmarshal_Invalid(t *testing.T) {
+	input := []byte(`{"doo": "doo"}`)
+
+	var o offering.Offering
+	err := json.Unmarshal(input, &o)
+
+	assert.Error(t, err)
 }
