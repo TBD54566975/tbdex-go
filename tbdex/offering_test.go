@@ -1,11 +1,11 @@
-package offering_test
+package tbdex_test
 
 import (
 	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/protocol/resource/offering"
+	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 )
@@ -14,14 +14,14 @@ func TestCreate(t *testing.T) {
 	bearerDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
-	_, err = offering.Create(
-		offering.WithPayin(
+	_, err = tbdex.CreateOffering(
+		tbdex.WithOfferingPayin(
 			"USD",
-			offering.WithPayinMethod("SQUAREPAY"),
+			tbdex.WithOfferingPayinMethod("SQUAREPAY"),
 		),
-		offering.WithPayout(
+		tbdex.WithOfferingPayout(
 			"USDC",
-			offering.WithPayoutMethod(
+			tbdex.WithOfferingPayoutMethod(
 				"STORED_BALANCE",
 				20*time.Minute,
 			),
@@ -37,14 +37,14 @@ func TestSign(t *testing.T) {
 	bearerDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
-	offering, err := offering.Create(
-		offering.WithPayin(
+	offering, err := tbdex.CreateOffering(
+		tbdex.WithOfferingPayin(
 			"USD",
-			offering.WithPayinMethod("SQUAREPAY"),
+			tbdex.WithOfferingPayinMethod("SQUAREPAY"),
 		),
-		offering.WithPayout(
+		tbdex.WithOfferingPayout(
 			"USDC",
-			offering.WithPayoutMethod(
+			tbdex.WithOfferingPayoutMethod(
 				"STORED_BALANCE",
 				20*time.Minute,
 			),
@@ -61,14 +61,14 @@ func TestSign(t *testing.T) {
 func TestUnmarshal(t *testing.T) {
 	bearerDID, _ := didjwk.Create()
 
-	o, _ := offering.Create(
-		offering.WithPayin(
+	o, _ := tbdex.CreateOffering(
+		tbdex.WithOfferingPayin(
 			"USD",
-			offering.WithPayinMethod("SQUAREPAY"),
+			tbdex.WithOfferingPayinMethod("SQUAREPAY"),
 		),
-		offering.WithPayout(
+		tbdex.WithOfferingPayout(
 			"USDC",
-			offering.WithPayoutMethod(
+			tbdex.WithOfferingPayoutMethod(
 				"STORED_BALANCE",
 				20*time.Minute,
 			),
@@ -80,7 +80,7 @@ func TestUnmarshal(t *testing.T) {
 	bytes, err := json.Marshal(o)
 	assert.NoError(t, err)
 
-	var o2 offering.Offering
+	var o2 tbdex.Offering
 	err = o2.UnmarshalJSON(bytes)
 	assert.NoError(t, err)
 }
@@ -88,7 +88,7 @@ func TestUnmarshal(t *testing.T) {
 func TestUnmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
-	var o offering.Offering
+	var o tbdex.Offering
 	err := json.Unmarshal(input, &o)
 
 	assert.Error(t, err)
