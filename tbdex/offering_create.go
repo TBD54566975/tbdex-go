@@ -8,18 +8,18 @@ import (
 	"go.jetpack.io/typeid"
 )
 
-// Create creates an [Offering]
+// CreateOffering creates an [Offering]
 //
 // An Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 //
 // [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#offering
-func CreateOffering(payin OfferingPayinDetails, payout OfferingPayoutDetails, rate string, from string, opts ...CreateOption) (Offering, error) {
+func CreateOffering(payin OfferingPayinDetails, payout OfferingPayoutDetails, rate string, from string, opts ...CreateOfferingOption) (Offering, error) {
 	defaultID, err := typeid.WithPrefix(OfferingKind)
 	if err != nil {
 		return Offering{}, fmt.Errorf("failed to generate default id: %w", err)
 	}
 
-	o := createOptions{
+	o := createOfferingOptions{
 		id:          defaultID.String(),
 		createdAt:   time.Now(),
 		updatedAt:   time.Now(),
@@ -56,7 +56,7 @@ func CreateOffering(payin OfferingPayinDetails, payout OfferingPayoutDetails, ra
 	}, nil
 }
 
-type createOptions struct {
+type createOfferingOptions struct {
 	id          string
 	createdAt   time.Time
 	updatedAt   time.Time
@@ -64,108 +64,108 @@ type createOptions struct {
 	protocol    string
 }
 
-// CreateOption implements functional options pattern for [Create].
-type CreateOption func(*createOptions)
+// CreateOfferingOption implements functional options pattern for [Create].
+type CreateOfferingOption func(*createOfferingOptions)
 
-// WithID can be passed to [Create] to provide a custom id.
-func WithOfferingID(id string) CreateOption {
-	return func(o *createOptions) {
+// WithOfferingID can be passed to [CreateOffering] to provide a custom id.
+func WithOfferingID(id string) CreateOfferingOption {
+	return func(o *createOfferingOptions) {
 		o.id = id
 	}
 }
 
 // WithOfferingCreatedAt can be passed to [Create] to provide a custom created at time.
-func WithOfferingCreatedAt(t time.Time) CreateOption {
-	return func(o *createOptions) {
+func WithOfferingCreatedAt(t time.Time) CreateOfferingOption {
+	return func(o *createOfferingOptions) {
 		o.createdAt = t
 	}
 }
 
 // WithOfferingUpdatedAt can be passed to [Create] to provide a custom updated at time.
-func WithOfferingUpdatedAt(t time.Time) CreateOption {
-	return func(o *createOptions) {
+func WithOfferingUpdatedAt(t time.Time) CreateOfferingOption {
+	return func(o *createOfferingOptions) {
 		o.updatedAt = t
 	}
 }
 
 // WithOfferingDescription can be passed to [Create] to provide a custom description.
-func WithOfferingDescription(d string) CreateOption {
-	return func(o *createOptions) {
+func WithOfferingDescription(d string) CreateOfferingOption {
+	return func(o *createOfferingOptions) {
 		o.description = d
 	}
 }
 
-// PayinOption implements functional options pattern for [OfferingPayinDetails].
-type PayinOption func(*OfferingPayinDetails)
+// OfferingPayinOption implements functional options pattern for [OfferingPayinDetails].
+type OfferingPayinOption func(*OfferingPayinDetails)
 
 // WithOfferingPayinMin can be passed to [Create] to provide a custom min payin amount.
-func WithOfferingPayinMin(min string) PayinOption {
+func WithOfferingPayinMin(min string) OfferingPayinOption {
 	return func(p *OfferingPayinDetails) {
 		p.Min = min
 	}
 }
 
 // WithOfferingPayinMax can be passed to [Create] to provide a custom max payin amount.
-func WithOfferingPayinMax(max string) PayinOption {
+func WithOfferingPayinMax(max string) OfferingPayinOption {
 	return func(p *OfferingPayinDetails) {
 		p.Max = max
 	}
 }
 
-// PayinMethodOption implements functional options pattern for [OfferingPayinMethod].
-type PayinMethodOption func(*OfferingPayinMethod)
+// OfferingPayinMethodOption implements functional options pattern for [OfferingPayinMethod].
+type OfferingPayinMethodOption func(*OfferingPayinMethod)
 
 // WithOfferingPayinMethodFee can be passed to [Create] to provide a custom payin method fee.
-func WithOfferingPayinMethodFee(fee string) PayinMethodOption {
+func WithOfferingPayinMethodFee(fee string) OfferingPayinMethodOption {
 	return func(pm *OfferingPayinMethod) {
 		pm.Fee = fee
 	}
 }
 
 // WithOfferingPayinMethodMin can be passed to [Create] to provide a custom min payin method amount.
-func WithOfferingPayinMethodMin(min string) PayinMethodOption {
+func WithOfferingPayinMethodMin(min string) OfferingPayinMethodOption {
 	return func(pm *OfferingPayinMethod) {
 		pm.Min = min
 	}
 }
 
 // WithOfferingPayinMethodMax can be passed to [Create] to provide a custom max payin method amount.
-func WithOfferingPayinMethodMax(max string) PayinMethodOption {
+func WithOfferingPayinMethodMax(max string) OfferingPayinMethodOption {
 	return func(pm *OfferingPayinMethod) {
 		pm.Max = max
 	}
 }
 
 // WithOfferingPayinMethodGroup can be passed to [Create] to provide a custom payin method group.
-func WithOfferingPayinMethodGroup(group string) PayinMethodOption {
+func WithOfferingPayinMethodGroup(group string) OfferingPayinMethodOption {
 	return func(pm *OfferingPayinMethod) {
 		pm.Group = group
 	}
 }
 
 // WithOfferingPayinMethodName can be passed to [Create] to provide a custom payin method name.
-func WithOfferingPayinMethodName(name string) PayinMethodOption {
+func WithOfferingPayinMethodName(name string) OfferingPayinMethodOption {
 	return func(pm *OfferingPayinMethod) {
 		pm.Name = name
 	}
 }
 
 // WithOfferingPayinMethodDescription can be passed to [Create] to provide a custom payin method description.
-func WithOfferingPayinMethodDescription(description string) PayinMethodOption {
+func WithOfferingPayinMethodDescription(description string) OfferingPayinMethodOption {
 	return func(pm *OfferingPayinMethod) {
 		pm.Description = description
 	}
 }
 
 // WithOfferingPayinMethodRequiredPaymentDetails can be passed to [Create] to provide a custom payin method required payment details.
-func WithOfferingPayinMethodRequiredPaymentDetails(details string) PayinMethodOption {
+func WithOfferingPayinMethodRequiredPaymentDetails(details string) OfferingPayinMethodOption {
 	return func(pm *OfferingPayinMethod) {
 		pm.RequiredPaymentDetails = details
 	}
 }
 
 // WithOfferingPayinMethod can be passed to [Create] to provide a custom payin method.
-func WithOfferingPayinMethod(kind string, opts ...PayinMethodOption) OfferingPayinMethod {
+func WithOfferingPayinMethod(kind string, opts ...OfferingPayinMethodOption) OfferingPayinMethod {
 	pm := OfferingPayinMethod{Kind: kind}
 
 	for _, opt := range opts {
@@ -176,7 +176,7 @@ func WithOfferingPayinMethod(kind string, opts ...PayinMethodOption) OfferingPay
 }
 
 // WithOfferingPayin can be passed to [Create] to provide a custom payin.
-func WithOfferingPayin(currencyCode string, payinMethod OfferingPayinMethod, opts ...PayinOption) OfferingPayinDetails {
+func WithOfferingPayin(currencyCode string, payinMethod OfferingPayinMethod, opts ...OfferingPayinOption) OfferingPayinDetails {
 	p := OfferingPayinDetails{
 		CurrencyCode: currencyCode,
 		Methods:      []OfferingPayinMethod{payinMethod},
@@ -189,70 +189,70 @@ func WithOfferingPayin(currencyCode string, payinMethod OfferingPayinMethod, opt
 	return p
 }
 
-// PayoutOption implements functional options pattern for [OfferingPayoutDetails].
-type PayoutOption func(*OfferingPayoutDetails)
+// OfferingPayoutOption implements functional options pattern for [OfferingPayoutDetails].
+type OfferingPayoutOption func(*OfferingPayoutDetails)
 
 // WithOfferingPayoutMin can be passed to [Create] to provide a custom min payout amount.
-func WithOfferingPayoutMin(min string) PayoutOption {
+func WithOfferingPayoutMin(min string) OfferingPayoutOption {
 	return func(p *OfferingPayoutDetails) {
 		p.Min = min
 	}
 }
 
 // WithOfferingPayoutMax can be passed to [Create] to provide a custom max payout amount.
-func WithOfferingPayoutMax(max string) PayoutOption {
+func WithOfferingPayoutMax(max string) OfferingPayoutOption {
 	return func(p *OfferingPayoutDetails) {
 		p.Max = max
 	}
 }
 
-// PayoutMethodOption implements functional options pattern for [OfferingPayoutMethod].
-type PayoutMethodOption func(*OfferingPayoutMethod)
+// OfferingPayoutMethodOption implements functional options pattern for [OfferingPayoutMethod].
+type OfferingPayoutMethodOption func(*OfferingPayoutMethod)
 
 // WithOfferingPayoutMethodFee can be passed to [Create] to provide a custom payout method fee.
-func WithOfferingPayoutMethodFee(fee string) PayoutMethodOption {
+func WithOfferingPayoutMethodFee(fee string) OfferingPayoutMethodOption {
 	return func(pm *OfferingPayoutMethod) {
 		pm.Fee = fee
 	}
 }
 
 // WithOfferingPayoutMethodMin can be passed to [Create] to provide a custom min payout method amount.
-func WithOfferingPayoutMethodMin(min string) PayoutMethodOption {
+func WithOfferingPayoutMethodMin(min string) OfferingPayoutMethodOption {
 	return func(pm *OfferingPayoutMethod) {
 		pm.Min = min
 	}
 }
 
 // WithOfferingPayoutMethodMax can be passed to [Create] to provide a custom max payout method amount.
-func WithOfferingPayoutMethodMax(max string) PayoutMethodOption {
+func WithOfferingPayoutMethodMax(max string) OfferingPayoutMethodOption {
 	return func(pm *OfferingPayoutMethod) {
 		pm.Max = max
 	}
 }
 
 // WithOfferingPayoutMethodGroup can be passed to [Create] to provide a custom payout method group.
-func WithOfferingPayoutMethodGroup(group string) PayoutMethodOption {
+func WithOfferingPayoutMethodGroup(group string) OfferingPayoutMethodOption {
 	return func(pm *OfferingPayoutMethod) {
 		pm.Group = group
 	}
 }
 
 // WithOfferingPayoutMethodName can be passed to [Create] to provide a custom payout method name.
-func WithOfferingPayoutMethodName(name string) PayoutMethodOption {
+func WithOfferingPayoutMethodName(name string) OfferingPayoutMethodOption {
 	return func(pm *OfferingPayoutMethod) {
 		pm.Name = name
 	}
 }
 
 // WithOfferingPayoutMethodDescription can be passed to [Create] to provide a custom payout method description.
-func WithOfferingPayoutMethodDescription(description string) PayoutMethodOption {
+func WithOfferingPayoutMethodDescription(description string) OfferingPayoutMethodOption {
 	return func(pm *OfferingPayoutMethod) {
 		pm.Description = description
 	}
 }
 
 // WithOfferingPayoutMethod can be passed to [Create] to provide a custom payout method.
-func WithOfferingPayoutMethod(kind string, estimatedSettlementTime time.Duration, opts ...PayoutMethodOption) OfferingPayoutMethod {
+func WithOfferingPayoutMethod(kind string, estimatedSettlementTime time.Duration, opts ...OfferingPayoutMethodOption) OfferingPayoutMethod {
 	pm := OfferingPayoutMethod{
 		OfferingPaymentMethod:   OfferingPaymentMethod{Kind: kind},
 		EstimatedSettlementTime: uint64(estimatedSettlementTime.Abs().Seconds()),
@@ -266,7 +266,7 @@ func WithOfferingPayoutMethod(kind string, estimatedSettlementTime time.Duration
 }
 
 // WithOfferingPayout can be passed to [Create] to provide a custom payout.
-func WithOfferingPayout(currencyCode string, payoutMethod OfferingPayoutMethod, opts ...PayoutOption) OfferingPayoutDetails {
+func WithOfferingPayout(currencyCode string, payoutMethod OfferingPayoutMethod, opts ...OfferingPayoutOption) OfferingPayoutDetails {
 	p := OfferingPayoutDetails{
 		CurrencyCode: currencyCode,
 		Methods:      []OfferingPayoutMethod{payoutMethod},

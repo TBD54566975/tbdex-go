@@ -1,6 +1,6 @@
 package tbdex
 
-// Metadata is the resource kind agnostic data
+// ResourceMetadata represents the metadata of a resource e.g. offering, balance etc.
 type ResourceMetadata struct {
 	From      string `json:"from"`
 	Kind      string `json:"kind"`
