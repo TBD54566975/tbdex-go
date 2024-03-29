@@ -13,7 +13,7 @@ import (
 // An Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 //
 // [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#offering
-func CreateOffering(payin OfferingPayinDetails, payout OfferingPayoutDetails, rate string, from string, opts ...CreateOfferingOption) (Offering, error) {
+func CreateOffering(payin OfferingPayinDetails, payout OfferingPayoutDetails, rate string, opts ...CreateOfferingOption) (Offering, error) {
 	defaultID, err := typeid.WithPrefix(OfferingKind)
 	if err != nil {
 		return Offering{}, fmt.Errorf("failed to generate default id: %w", err)

@@ -95,7 +95,7 @@ func (o Offering) Digest() ([]byte, error) {
 }
 
 // Sign cryptographically signs the Resource using DID's private key
-func (o Offering) Sign(bearerDID did.BearerDID) error {
+func (o *Offering) Sign(bearerDID did.BearerDID) error {
 	o.From = bearerDID.URI
 
 	signature, err := Sign(o, bearerDID)
