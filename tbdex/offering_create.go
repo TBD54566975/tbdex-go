@@ -43,9 +43,9 @@ func CreateOffering(payin OfferingPayinDetails, payout OfferingPayoutDetails, ra
 		ResourceMetadata: ResourceMetadata{
 			Kind:      OfferingKind,
 			ID:        o.id,
-			From:      from,
 			CreatedAt: o.createdAt.UTC().Format(time.RFC3339),
 			UpdatedAt: o.updatedAt.UTC().Format(time.RFC3339),
+			Protocol:  o.protocol,
 		},
 		OfferingData: OfferingData{
 			Payin:       payin,
