@@ -71,7 +71,8 @@ func TestUnmarshal(t *testing.T) {
 		"1.0",
 	)
 
-	o.Sign(bearerDID)
+	err := o.Sign(bearerDID)
+	assert.NoError(t, err)
 
 	bytes, err := json.Marshal(o)
 	assert.NoError(t, err)
