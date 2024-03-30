@@ -11,10 +11,7 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	bearerDID, err := didjwk.Create()
-	assert.NoError(t, err)
-
-	_, err = tbdex.CreateOffering(
+	_, err := tbdex.CreateOffering(
 		tbdex.WithOfferingPayin(
 			"USD",
 			tbdex.WithOfferingPayinMethod("SQUAREPAY"),
@@ -27,7 +24,6 @@ func TestCreate(t *testing.T) {
 			),
 		),
 		"1.0",
-		bearerDID.URI,
 	)
 
 	assert.NoError(t, err)
@@ -50,7 +46,6 @@ func TestSign(t *testing.T) {
 			),
 		),
 		"1.0",
-		bearerDID.URI,
 	)
 	assert.NoError(t, err)
 
@@ -74,8 +69,10 @@ func TestUnmarshal(t *testing.T) {
 			),
 		),
 		"1.0",
-		bearerDID.URI,
 	)
+
+	err := o.Sign(bearerDID)
+	assert.NoError(t, err)
 
 	bytes, err := json.Marshal(o)
 	assert.NoError(t, err)
