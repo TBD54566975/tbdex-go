@@ -12,9 +12,13 @@ import (
 
 func TestCreateRFQ(t *testing.T) {
 	pfiDID, err := didjwk.Create()
+	assert.NoError(t, err)
 
 	walletDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
 	offeringID, err := typeid.WithPrefix(tbdex.OfferingKind)
+	assert.NoError(t, err)
 
 	_, err = tbdex.CreateRFQ(
 		walletDID.URI,
@@ -22,6 +26,7 @@ func TestCreateRFQ(t *testing.T) {
 		offeringID.String(),
 		tbdex.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
 		tbdex.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
+		tbdex.WithRFQExternalID("test_1234"),
 	)
 
 	assert.NoError(t, err)

@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
@@ -13,12 +12,14 @@ import (
 // RFQKind identifies this message kind
 const RFQKind = "rfq"
 
+// RFQ represents a request for quote message within the exchange.
 type RFQ struct {
 	MessageMetadata MessageMetadata `json:"metadata"`
-	RFQData         RFQData `json:"data"`
-	Signature       string `json:"signature"`
+	RFQData         RFQData         `json:"data"`
+	Signature       string          `json:"signature"`
 }
 
+// RFQData encapsulates the data content of a request for quote.
 type RFQData struct {
 	OfferingID string               `json:"offeringId"`
 	Payin      SelectedPayinMethod  `json:"payin"`
@@ -26,29 +27,29 @@ type RFQData struct {
 	ClaimsHash string               `json:"claimsHash,omitempty"`
 }
 
+// SelectedPayinMethod represents the chosen method for the pay-in
 type SelectedPayinMethod struct {
 	Amount             string `json:"amount"`
 	Kind               string `json:"kind"`
 	PaymentDetailsHash string `json:"paymentDetailsHash,omitempty"`
 }
 
+// SelectedPayoutMethod represents the chosen method for the pay-out
 type SelectedPayoutMethod struct {
 	Kind               string `json:"kind"`
 	PaymentDetailsHash string `json:"paymentDetailsHash,omitempty"`
 }
 
-type createRFQOptions struct {
-	id         string
-	createdAt  time.Time
-	claimsHash string
-	protocol   string
-	externalID string
-}
-
-type CreateRFQOption func(*createRFQOptions)
-
-func (rfq RFQ) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": rfq.MessageMetadata, "data": rfq.RFQData}
+// Digest computes a hash of the resource
+// A digest is the output of the hash function. It's a fixed-size string of bytes
+//   - that uniquely represents the data input into the hash function. The digest is often used for
+//   - data integrity checks, as any alteration in the input data results in a significantly
+//   - different digest.
+//     *
+//   - It takes the algorithm identifier of the hash function and data to digest as input and returns
+//   - the digest of the data.
+func (r RFQ) Digest() ([]byte, error) {
+	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.RFQData}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal rfq: %w", err)
@@ -82,6 +83,7 @@ func (r *RFQ) Sign(bearerDID did.BearerDID) error {
 	return nil
 }
 
+// UnmarshalJSON validates and unmarshals the input data into an RFQ.
 func (r *RFQ) UnmarshalJSON(data []byte) error {
 	err := Validate(TypeMessage, data, WithKind(RFQKind))
 	if err != nil {
