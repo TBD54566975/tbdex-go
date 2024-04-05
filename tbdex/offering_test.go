@@ -10,7 +10,7 @@ import (
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 )
 
-func TestCreate(t *testing.T) {
+func TestCreateOffering(t *testing.T) {
 	_, err := tbdex.CreateOffering(
 		tbdex.WithOfferingPayin(
 			"USD",
@@ -29,10 +29,9 @@ func TestCreate(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestSign(t *testing.T) {
+func TestOffering_Sign(t *testing.T) {
 	bearerDID, err := didjwk.Create()
 	assert.NoError(t, err)
-
 	offering, err := tbdex.CreateOffering(
 		tbdex.WithOfferingPayin(
 			"USD",
@@ -53,7 +52,7 @@ func TestSign(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUnmarshal(t *testing.T) {
+func TestOffering_UnmarshalJSON(t *testing.T) {
 	bearerDID, _ := didjwk.Create()
 
 	o, _ := tbdex.CreateOffering(
@@ -82,7 +81,7 @@ func TestUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUnmarshal_Invalid(t *testing.T) {
+func TestOffering_Unmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	var o tbdex.Offering
