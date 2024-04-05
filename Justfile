@@ -14,4 +14,4 @@ lint:
 # Copies JSON schemas from the tbdex submodule repo into the protocol dir.
 schemas:
   @git submodule update --init --recursive
-  @cp -r tbdex/hosted/json-schemas protocol/
+  @cp -r spec/hosted/json-schemas tbdex/
