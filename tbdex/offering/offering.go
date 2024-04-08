@@ -9,6 +9,7 @@ import (
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/pexv2"
+	"go.jetpack.io/typeid"
 )
 
 // Kind distinguishes between different resource kinds
@@ -23,11 +24,11 @@ type Offering struct {
 
 // Data represents the data of an Offering.
 type Data struct {
-	Description    string                       `json:"description"`
-	Rate           string                       `json:"payoutUnitsPerPayinUnit"`
-	Payin          PayinDetails                 `json:"payin,omitempty"`
-	Payout         PayoutDetails                `json:"payout,omitempty"`
-	RequiredClaims pexv2.PresentationDefinition `json:"requiredClaims,omitempty"`
+	Description    string                        `json:"description"`
+	Rate           string                        `json:"payoutUnitsPerPayinUnit"`
+	Payin          PayinDetails                  `json:"payin,omitempty"`
+	Payout         PayoutDetails                 `json:"payout,omitempty"`
+	RequiredClaims *pexv2.PresentationDefinition `json:"requiredClaims,omitempty"`
 }
 
 // PayinDetails represents the details of the payin part of an Offering.
@@ -46,7 +47,7 @@ type PayoutDetails struct {
 	Methods      []PayoutMethod `json:"methods,omitempty"`
 }
 
-// PaymentMethod represents a single payment option on an Offering.
+// PayinMethod represents a single payment option on an Offering.
 type PayinMethod struct {
 	Kind                   string `json:"kind"`
 	Name                   string `json:"name,omitempty"`
@@ -70,6 +71,14 @@ type PayoutMethod struct {
 	Max                     string `json:"max,omitempty"`
 	EstimatedSettlementTime uint64 `json:"estimatedSettlementTime"`
 }
+
+// ID is a unique identifier for an Offering.
+type ID struct {
+	typeid.TypeID[ID]
+}
+
+// Prefix returns the prefix for the Offering ID.
+func (id ID) Prefix() string { return Kind }
 
 // Digest computes a hash of the resource
 // A digest is the output of the hash function. It's a fixed-size string of bytes

@@ -84,19 +84,4 @@ func TestUnmarshal_Invalid(t *testing.T) {
 	var o offering.Offering
 	err := json.Unmarshal(input, &o)
 	assert.Error(t, err)
-
-	usdWirePayin := offering.NewPayin(
-		"USD",
-		[]offering.PayinMethod{offering.NewPayinMethod("WIRE")},
-	)
-
-	usdStoredBalancePayout := offering.NewPayout(
-		"USD",
-		[]offering.PayoutMethod{
-			offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute),
-		},
-	)
-
-	offering.Create(usdWirePayin, usdStoredBalancePayout, "1.0")
-
 }
