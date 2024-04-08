@@ -33,7 +33,7 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 	}
 
 	if len(payout.Methods) == 0 {
-		return Offering{}, errors.New("1 payout method is required")
+		return Offering{}, errors.New("At least 1 payout method is required")
 	}
 
 	return Offering{
