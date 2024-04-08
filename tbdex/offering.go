@@ -1,11 +1,9 @@
 package tbdex
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 
-	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
 )
 
@@ -74,24 +72,13 @@ type OfferingPayoutMethod struct {
 //   - the digest of the data.
 func (o Offering) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": o.ResourceMetadata, "data": o.OfferingData}
-	payloadBytes, err := json.Marshal(payload)
+	hash, err := Digest(payload)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal offering: %w", err)
+		return nil, fmt.Errorf("failed to digest offering: %w", err)
 	}
 
-	canonicalized, err := jcs.Transform(payloadBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to canonicalize offering: %w", err)
-	}
-
-	hasher := sha256.New()
-	_, err = hasher.Write(canonicalized)
-	if err != nil {
-		return nil, fmt.Errorf("failed to compute digest: %w", err)
-
-	}
-
-	return hasher.Sum(nil), nil
+	return hash, nil
 }
 
 // Sign cryptographically signs the Resource using DID's private key

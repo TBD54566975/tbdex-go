@@ -15,7 +15,8 @@ const RFQKind = "rfq"
 // RFQ represents a request for quote message within the exchange.
 type RFQ struct {
 	MessageMetadata MessageMetadata `json:"metadata"`
-	RFQData         RFQData         `json:"data"`
+	Data            RFQData         `json:"data"`
+	PrivateData     RFQPrivateData  `json:"privateData"`
 	Signature       string          `json:"signature"`
 }
 
@@ -25,6 +26,19 @@ type RFQData struct {
 	Payin      SelectedPayinMethod  `json:"payin"`
 	Payout     SelectedPayoutMethod `json:"payout"`
 	ClaimsHash string               `json:"claimsHash,omitempty"`
+}
+
+// RFQPrivateData contains data which can be detached from the payload without disrupting integrity.
+type RFQPrivateData struct {
+	Salt   string                 `json:"salt"`
+	Claims []string               `json:"claims"`
+	Payin  *PrivatePaymentDetails `json:"payin"`
+	Payout *PrivatePaymentDetails `json:"payout"`
+}
+
+// PrivatePaymentDetails is a container for the cleartest [PaymentDetails]
+type PrivatePaymentDetails struct {
+	PaymentDetails map[string]any `json:"paymentDetails"`
 }
 
 // SelectedPayinMethod represents the chosen method for the pay-in
@@ -49,7 +63,7 @@ type SelectedPayoutMethod struct {
 //   - It takes the algorithm identifier of the hash function and data to digest as input and returns
 //   - the digest of the data.
 func (r RFQ) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.RFQData}
+	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.Data}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal rfq: %w", err)

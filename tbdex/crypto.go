@@ -1,8 +1,11 @@
 package tbdex
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 
+	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/jws"
 )
@@ -26,3 +29,21 @@ func Sign(digester Digester, bearerDID did.BearerDID) (string, error) {
 
 	return signature, nil
 }
+
+// Digest generates a SHA-256 hash of the canonicalized input payload.
+func Digest(payload interface{}) ([]byte, error) {
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal payload: %w", err)
+	}
+
+	canonicalized, err := jcs.Transform(payloadBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to canonicalize payload: %w", err)
+	}
+
+	hash := sha256.Sum256(canonicalized)
+
+	return hash[:], nil
+}
+
