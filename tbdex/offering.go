@@ -110,6 +110,8 @@ func (o *Offering) UnmarshalJSON(data []byte) error {
 
 	*o = Offering(off)
 
+	if err := VerifySignature(o, o.Signature); err != nil { return err }
+
 	return nil
 }
 

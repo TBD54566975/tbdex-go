@@ -33,9 +33,9 @@ func TestCreateRFQ(t *testing.T) {
 }
 
 func TestCreateRFQ_WithPrivate(t *testing.T) {
-	pfiDID, err := didjwk.Create()
-	walletDID, err := didjwk.Create()
-	offeringID, err := typeid.WithPrefix(tbdex.OfferingKind)
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(tbdex.OfferingKind)
 
 	rfq, err := tbdex.CreateRFQ(
 		walletDID.URI,
@@ -84,7 +84,12 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 		pfiDID.URI,
 		offeringID.String(),
 		tbdex.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		tbdex.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
+		tbdex.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", tbdex.WithPayoutMethodWithPrivate(
+			map[string]interface{}{
+			"accountNumber":     "1234567890123456",
+			"routingNumber":     "123456789",
+		},)),
+		tbdex.WithRFQClaims([]string{"my_jwt"}),
 	)
 	
 	_ = r.Sign(walletDID)

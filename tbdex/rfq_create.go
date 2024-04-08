@@ -9,23 +9,6 @@ import (
 	"go.jetpack.io/typeid"
 )
 
-type PayinMethodWithPrivate struct {
-	Amount         string         `json:"amount"`
-	Kind           string         `json:"kind"`
-	PaymentDetails map[string]any `json:"paymentDetails"`
-}
-
-type PayoutMethodWithPrivate struct {
-	Kind           string         `json:"kind"`
-	PaymentDetails map[string]any `json:"paymentDetails"`
-}
-
-type rfqHashes struct {
-	PayinHash  string
-	PayoutHash string
-	ClaimsHash string
-}
-
 // CreateRFQ creates an [RFQ]
 //
 // # An RFQ is a resource created by a customer of the PFI to request a quote
@@ -137,7 +120,25 @@ func digestData(salt string, data any) (string, error) {
 	return encodedString, nil
 }
 
-// CreateRFQOption is a function type used to apply options to RFQ creation.
+// PayinMethodWithPrivate is used to create the payin method for an RFQ
+type PayinMethodWithPrivate struct {
+	Amount         string         `json:"amount"`
+	Kind           string         `json:"kind"`
+	PaymentDetails map[string]any `json:"paymentDetails"`
+}
+
+// PayoutMethodWithPrivate is used to create the payout method for an RFQ
+type PayoutMethodWithPrivate struct {
+	Kind           string         `json:"kind"`
+	PaymentDetails map[string]any `json:"paymentDetails"`
+}
+
+type rfqHashes struct {
+	PayinHash  string
+	PayoutHash string
+	ClaimsHash string
+}
+
 type createRFQOptions struct {
 	id         string
 	createdAt  time.Time

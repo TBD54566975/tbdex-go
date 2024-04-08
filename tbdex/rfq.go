@@ -112,6 +112,22 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 
 	*r = RFQ(ret)
 
+	if err := VerifySignature(r, r.Signature); err != nil { return err }
+
+	// TODO verify private data
+	// if requirePrivateData {
+	// 	err = r.verifyAllPrivateData()
+	// 	if err != nil {
+	// 	return fmt.Errorf("failed to verify private data: %w", err)
+
+	// 	}
+	// }
+
+	return nil
+}
+
+func (r *RFQ) verifyAllPrivateData() error {
+
 	return nil
 }
 

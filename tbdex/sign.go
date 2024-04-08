@@ -3,6 +3,7 @@ package tbdex
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/gowebpki/jcs"
@@ -47,3 +48,21 @@ func Digest(payload interface{}) ([]byte, error) {
 	return hash[:], nil
 }
 
+// VerifySignature verifies the given signature and the signed payload
+func VerifySignature(digester Digester, signature string) error {
+	if signature == "" {
+		return errors.New("could not verify message signature because signature is empty")
+	}
+
+	payload, err := digester.Digest()
+	if err != nil {
+		return err
+	}
+
+	_, err = jws.Verify(signature, jws.Payload(payload))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
