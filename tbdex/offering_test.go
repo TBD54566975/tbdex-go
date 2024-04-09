@@ -89,3 +89,4 @@ func TestOffering_Unmarshal_Invalid(t *testing.T) {
 
 	assert.Error(t, err)
 }
+
