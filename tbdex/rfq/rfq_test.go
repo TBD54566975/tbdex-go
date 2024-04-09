@@ -43,11 +43,11 @@ func TestCreateRFQ_WithPrivate(t *testing.T) {
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithPrivate(
+		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithDetails(
 			map[string]interface{}{
-			"accountNumber":     "1234567890123456",
-			"routingNumber":     "123456789",
-		},)),
+				"accountNumber": "1234567890123456",
+				"routingNumber": "123456789",
+			})),
 		rfq.WithRFQClaims([]string{"my_jwt"}),
 	)
 
@@ -69,7 +69,7 @@ func TestRFQ_Sign(t *testing.T) {
 		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
 		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
 	)
-	
+
 	err := r.Sign(walletDID)
 	assert.NoError(t, err)
 }
@@ -85,14 +85,14 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithPrivate(
+		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithDetails(
 			map[string]interface{}{
-			"accountNumber":     "1234567890123456",
-			"routingNumber":     "123456789",
-		},)),
+				"accountNumber": "1234567890123456",
+				"routingNumber": "123456789",
+			})),
 		rfq.WithRFQClaims([]string{"my_jwt"}),
 	)
-	
+
 	_ = r.Sign(walletDID)
 
 	bytes, err := json.Marshal(r)

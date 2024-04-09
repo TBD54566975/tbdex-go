@@ -15,7 +15,7 @@ import (
 // # An RFQ is a resource created by a customer of the PFI to request a quote
 //
 // [RFQ]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#rfq-request-for-quote
-func CreateRFQ(from, to, offeringID string, payin PayinMethodWithPrivate, payout PayoutMethodWithPrivate, opts ...CreateRFQOption) (RFQ, error) {
+func CreateRFQ(from, to, offeringID string, payin PayinMethodWithDetails, payout PayoutMethodWithDetails, opts ...CreateRFQOption) (RFQ, error) {
 	r := createRFQOptions{
 		id:         typeid.Must(typeid.WithPrefix(RFQKind)).String(),
 		createdAt:  time.Now(),
@@ -60,7 +60,7 @@ func CreateRFQ(from, to, offeringID string, payin PayinMethodWithPrivate, payout
 	}, nil
 }
 
-func hashData(payin *PayinMethodWithPrivate, payout *PayoutMethodWithPrivate, claims []string) (rfqHashes, RFQPrivateData, error) {
+func hashData(payin *PayinMethodWithDetails, payout *PayoutMethodWithDetails, claims []string) (rfqHashes, RFQPrivateData, error) {
 	randomBytes, err := crypto.GenerateEntropy(crypto.Entropy128)
 	if err != nil {
 		return rfqHashes{}, RFQPrivateData{}, err
@@ -114,15 +114,15 @@ func digestData(salt string, data any) (string, error) {
 	return encodedString, nil
 }
 
-// PayinMethodWithPrivate is used to create the payin method for an RFQ
-type PayinMethodWithPrivate struct {
+// PayinMethodWithDetails is used to create the payin method for an RFQ
+type PayinMethodWithDetails struct {
 	Amount         string         `json:"amount"`
 	Kind           string         `json:"kind"`
 	PaymentDetails map[string]any `json:"paymentDetails"`
 }
 
-// PayoutMethodWithPrivate is used to create the payout method for an RFQ
-type PayoutMethodWithPrivate struct {
+// PayoutMethodWithDetails is used to create the payout method for an RFQ
+type PayoutMethodWithDetails struct {
 	Kind           string         `json:"kind"`
 	PaymentDetails map[string]any `json:"paymentDetails"`
 }
@@ -172,29 +172,29 @@ func WithRFQClaims(claims []string) CreateRFQOption {
 	}
 }
 
-// PayinMethodWithPrivateOption is a function type used to apply options to [PayinMethodWithPrivate] creation.
-type PayinMethodWithPrivateOption func(*PayinMethodWithPrivate)
+// PayinMethodWithDetailsOption is a function type used to apply options to [PayinMethodWithDetails] creation.
+type PayinMethodWithDetailsOption func(*PayinMethodWithDetails)
 
-// PayoutMethodWithPrivateOption is a function type used to apply options to [PayoutMethodWithPrivate] creation.
-type PayoutMethodWithPrivateOption func(*PayoutMethodWithPrivate)
+// PayoutMethodWithDetailsOption is a function type used to apply options to [PayoutMethodWithDetails] creation.
+type PayoutMethodWithDetailsOption func(*PayoutMethodWithDetails)
 
-// WithPayinMethodWithPrivate can be passed to [WithRFQSelectedPayinMethod] to provide a hash of the payment details.
-func WithPayinMethodWithPrivate(detailsPrivate map[string]any) PayinMethodWithPrivateOption {
-	return func(pm *PayinMethodWithPrivate) {
-		pm.PaymentDetails = detailsPrivate
+// WithPayinMethodWithDetails can be passed to [WithRFQSelectedPayinMethod] to provide arbitrary payment details.
+func WithPayinMethodWithDetails(details map[string]any) PayinMethodWithDetailsOption {
+	return func(pm *PayinMethodWithDetails) {
+		pm.PaymentDetails = details
 	}
 }
 
-// WithPayoutMethodWithPrivate can be passed to [WithRFQSelectedPayoutMethod] to provide a hash of the payment details.
-func WithPayoutMethodWithPrivate(detailsPrivate map[string]any) PayoutMethodWithPrivateOption {
-	return func(pm *PayoutMethodWithPrivate) {
-		pm.PaymentDetails = detailsPrivate
+// WithPayoutMethodWithDetails can be passed to [WithRFQSelectedPayoutMethod] to provide arbitrary payment details.
+func WithPayoutMethodWithDetails(details map[string]any) PayoutMethodWithDetailsOption {
+	return func(pm *PayoutMethodWithDetails) {
+		pm.PaymentDetails = details
 	}
 }
 
 // WithRFQSelectedPayinMethod can be passed to [Create] to provide a payin method.
-func WithRFQSelectedPayinMethod(amount, kind string, opts ...PayinMethodWithPrivateOption) PayinMethodWithPrivate {
-	s := PayinMethodWithPrivate{
+func WithRFQSelectedPayinMethod(amount, kind string, opts ...PayinMethodWithDetailsOption) PayinMethodWithDetails {
+	s := PayinMethodWithDetails{
 		Amount: amount,
 		Kind:   kind,
 	}
@@ -207,8 +207,8 @@ func WithRFQSelectedPayinMethod(amount, kind string, opts ...PayinMethodWithPriv
 }
 
 // WithRFQSelectedPayoutMethod can be passed to [Create] to provide a payout method.
-func WithRFQSelectedPayoutMethod(kind string, opts ...PayoutMethodWithPrivateOption) PayoutMethodWithPrivate {
-	s := PayoutMethodWithPrivate{
+func WithRFQSelectedPayoutMethod(kind string, opts ...PayoutMethodWithDetailsOption) PayoutMethodWithDetails {
+	s := PayoutMethodWithDetails{
 		Kind: kind,
 	}
 
