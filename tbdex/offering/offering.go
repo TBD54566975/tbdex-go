@@ -92,7 +92,7 @@ func (o Offering) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": o.ResourceMetadata, "data": o.Data}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal offering: %w", err)
+		return nil, fmt.Errorf("failed to JSON marshal offering: %w", err)
 	}
 
 	canonicalized, err := jcs.Transform(payloadBytes)
@@ -134,7 +134,7 @@ func (o *Offering) UnmarshalJSON(data []byte) error {
 	off := offering{}
 	err = json.Unmarshal(data, &off)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal offering: %w", err)
+		return fmt.Errorf("failed to JSON unmarshal offering: %w", err)
 	}
 
 	*o = Offering(off)

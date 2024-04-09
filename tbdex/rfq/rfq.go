@@ -1,12 +1,10 @@
 package rfq
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
-	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
 )
 
@@ -17,7 +15,7 @@ const RFQKind = "rfq"
 type RFQ struct {
 	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
 	Data            RFQData         `json:"data"`
-	PrivateData     RFQPrivateData  `json:"privateData"`
+	PrivateData     *RFQPrivateData  `json:"privateData,omitempty"`
 	Signature       string          `json:"signature"`
 }
 
@@ -55,33 +53,16 @@ type SelectedPayoutMethod struct {
 	PaymentDetailsHash string `json:"paymentDetailsHash,omitempty"`
 }
 
-// Digest computes a hash of the resource
-// A digest is the output of the hash function. It's a fixed-size string of bytes
-//   - that uniquely represents the data input into the hash function. The digest is often used for
-//   - data integrity checks, as any alteration in the input data results in a significantly
-//   - different digest.
-//     *
-//   - It takes the algorithm identifier of the hash function and data to digest as input and returns
-//   - the digest of the data.
+// Digest computes a hash of the rfq
 func (r RFQ) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.Data}
-	payloadBytes, err := json.Marshal(payload)
+
+	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal rfq: %w", err)
+		return nil, fmt.Errorf("failed to digest rfq: %w", err)
 	}
 
-	canonicalized, err := jcs.Transform(payloadBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to canonicalize rfq: %w", err)
-	}
-
-	hasher := sha256.New()
-	_, err = hasher.Write(canonicalized)
-	if err != nil {
-		return nil, fmt.Errorf("failed to compute digest: %w", err)
-	}
-
-	return hasher.Sum(nil), nil
+	return hashed, nil
 }
 
 // Sign cryptographically signs the RFQ using DID's private key
@@ -108,12 +89,20 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 	ret := rfq{}
 	err = json.Unmarshal(data, &ret)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal rfq: %w", err)
+		return fmt.Errorf("failed to JSON unmarshal rfq: %w", err)
 	}
 
 	*r = RFQ(ret)
 
-	if err := tbdex.VerifySignature(r, r.Signature); err != nil { return err }
+	_, err = tbdex.VerifySignature(r, r.Signature)
+	if err != nil {
+		return fmt.Errorf("failed to verify RFQ signature: %w", err)
+	}
+
+	// TODO add check when decoded.SignerDID is implemented
+	// if decoded.SignerDID != r.MessageMetadata.From {
+	// 	return errors.New("signer: %w does not match message metadata from: %w", decoded.Header.SignerDID, r.MessageMetadata.From)
+	// }
 
 	// TODO verify private data
 	// if requirePrivateData {

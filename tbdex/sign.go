@@ -31,11 +31,11 @@ func Sign(digester Digester, bearerDID did.BearerDID) (string, error) {
 	return signature, nil
 }
 
-// Digest generates a SHA-256 hash of the canonicalized input payload.
-func Digest(payload interface{}) ([]byte, error) {
+// DigestJSON generates a SHA-256 hash of the canonicalized input payload.
+func DigestJSON(payload any) ([]byte, error) {
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal payload: %w", err)
+		return nil, fmt.Errorf("failed to JSON marshal payload: %w", err)
 	}
 
 	canonicalized, err := jcs.Transform(payloadBytes)
@@ -49,20 +49,20 @@ func Digest(payload interface{}) ([]byte, error) {
 }
 
 // VerifySignature verifies the given signature and the signed payload
-func VerifySignature(digester Digester, signature string) error {
+func VerifySignature(digester Digester, signature string) (*jws.Decoded, error) {
 	if signature == "" {
-		return errors.New("could not verify message signature because signature is empty")
+		return nil, errors.New("could not verify signature because signature is empty")
 	}
 
 	payload, err := digester.Digest()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = jws.Verify(signature, jws.Payload(payload))
+	decoded, err := jws.Verify(signature, jws.Payload(payload))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &decoded, nil
 }

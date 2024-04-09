@@ -1,12 +1,12 @@
 package rfq
 
 import (
-	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"time"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/tbd54566975/web5-go/crypto"
 	"go.jetpack.io/typeid"
 )
 
@@ -14,15 +14,10 @@ import (
 //
 // # An RFQ is a resource created by a customer of the PFI to request a quote
 //
-// [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#rfq-request-for-quote
+// [RFQ]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#rfq-request-for-quote
 func CreateRFQ(from, to, offeringID string, payin PayinMethodWithPrivate, payout PayoutMethodWithPrivate, opts ...CreateRFQOption) (RFQ, error) {
-	defaultID, err := typeid.WithPrefix(RFQKind)
-	if err != nil {
-		return RFQ{}, fmt.Errorf("failed to generate default id: %w", err)
-	}
-
 	r := createRFQOptions{
-		id:         defaultID.String(),
+		id:         typeid.Must(typeid.WithPrefix(RFQKind)).String(),
 		createdAt:  time.Now(),
 		protocol:   "1.0",
 		externalID: "",
@@ -33,7 +28,7 @@ func CreateRFQ(from, to, offeringID string, payin PayinMethodWithPrivate, payout
 	}
 
 	hashedData, privateData, err := hashData(&payin, &payout, r.claims)
-    if err != nil {
+	if err != nil {
 		return RFQ{}, fmt.Errorf("failed to hash private data: %w", err)
 	}
 
@@ -50,68 +45,66 @@ func CreateRFQ(from, to, offeringID string, payin PayinMethodWithPrivate, payout
 		},
 		Data: RFQData{
 			OfferingID: offeringID,
-			Payin:      SelectedPayinMethod{
-                Amount: payin.Amount,
-                Kind: payin.Kind,
-                PaymentDetailsHash: hashedData.PayinHash,
-            },
-			Payout:     SelectedPayoutMethod{
-                Kind: payin.Kind,
-                PaymentDetailsHash: hashedData.PayoutHash,
-            },
+			Payin: SelectedPayinMethod{
+				Amount:             payin.Amount,
+				Kind:               payin.Kind,
+				PaymentDetailsHash: hashedData.PayinHash,
+			},
+			Payout: SelectedPayoutMethod{
+				Kind:               payin.Kind,
+				PaymentDetailsHash: hashedData.PayoutHash,
+			},
 			ClaimsHash: hashedData.ClaimsHash,
 		},
-		PrivateData: privateData,
+		PrivateData: &privateData,
 	}, nil
 }
 
 func hashData(payin *PayinMethodWithPrivate, payout *PayoutMethodWithPrivate, claims []string) (rfqHashes, RFQPrivateData, error) {
-    randomBytes := make([]byte, 16)
-	_, err := rand.Read(randomBytes)
+	randomBytes, err := crypto.GenerateEntropy(crypto.Entropy128)
 	if err != nil {
 		return rfqHashes{}, RFQPrivateData{}, err
 	}
 
 	salt := base64.URLEncoding.EncodeToString(randomBytes)
 
-    payinHash, err := digestData(salt, payin)
-    if err != nil {
+	payinHash, err := digestData(salt, payin)
+	if err != nil {
 		return rfqHashes{}, RFQPrivateData{}, err
 	}
-    payoutHash, err := digestData(salt, payout)
-    if err != nil {
+	payoutHash, err := digestData(salt, payout)
+	if err != nil {
 		return rfqHashes{}, RFQPrivateData{}, err
 	}
-    claimsHash, err := digestData(salt, claims)
-    if err != nil {
+	claimsHash, err := digestData(salt, claims)
+	if err != nil {
 		return rfqHashes{}, RFQPrivateData{}, err
 	}
 
+	h := rfqHashes{
+		PayinHash:  payinHash,
+		PayoutHash: payoutHash,
+		ClaimsHash: claimsHash,
+	}
 
-    h := rfqHashes{
-        PayinHash: payinHash,
-        PayoutHash: payoutHash,
-        ClaimsHash: claimsHash,
-    }
+	p := RFQPrivateData{
+		Salt: salt,
+		Payin: &PrivatePaymentDetails{
+			PaymentDetails: payin.PaymentDetails,
+		},
+		Payout: &PrivatePaymentDetails{
+			PaymentDetails: payout.PaymentDetails,
+		},
+		Claims: claims,
+	}
 
-    p := RFQPrivateData {
-        Salt: salt,
-        Payin: &PrivatePaymentDetails{
-            PaymentDetails: payin.PaymentDetails,
-        },
-        Payout: &PrivatePaymentDetails{
-            PaymentDetails: payout.PaymentDetails,
-        },
-        Claims: claims,
-    }
-
-    return h, p, nil
+	return h, p, nil
 }
 
 func digestData(salt string, data any) (string, error) {
-    digestible := []interface{}{salt, data}
+	digestible := []any{salt, data}
 
-	byteArray, err := tbdex.Digest(digestible)
+	byteArray, err := tbdex.DigestJSON(digestible)
 	if err != nil {
 		return "", err
 	}
