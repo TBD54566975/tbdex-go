@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/tbdex-go/tbdex"
 	"go.jetpack.io/typeid"
 )
 
@@ -37,7 +38,7 @@ func CreateRFQ(from, to, offeringID string, payin PayinMethodWithPrivate, payout
 	}
 
 	return RFQ{
-		MessageMetadata: MessageMetadata{
+		MessageMetadata: tbdex.MessageMetadata{
 			From:       from,
 			To:         to,
 			Kind:       RFQKind,
@@ -110,7 +111,7 @@ func hashData(payin *PayinMethodWithPrivate, payout *PayoutMethodWithPrivate, cl
 func digestData(salt string, data any) (string, error) {
     digestible := []interface{}{salt, data}
 
-	byteArray, err := Digest(digestible)
+	byteArray, err := tbdex.Digest(digestible)
 	if err != nil {
 		return "", err
 	}

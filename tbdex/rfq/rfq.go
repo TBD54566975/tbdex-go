@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
 )
@@ -14,7 +15,7 @@ const RFQKind = "rfq"
 
 // RFQ represents a request for quote message within the exchange.
 type RFQ struct {
-	MessageMetadata MessageMetadata `json:"metadata"`
+	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
 	Data            RFQData         `json:"data"`
 	PrivateData     RFQPrivateData  `json:"privateData"`
 	Signature       string          `json:"signature"`
@@ -87,7 +88,7 @@ func (r RFQ) Digest() ([]byte, error) {
 func (r *RFQ) Sign(bearerDID did.BearerDID) error {
 	r.MessageMetadata.From = bearerDID.URI
 
-	signature, err := Sign(r, bearerDID)
+	signature, err := tbdex.Sign(r, bearerDID)
 	if err != nil {
 		return fmt.Errorf("failed to sign rfq: %w", err)
 	}
@@ -99,7 +100,7 @@ func (r *RFQ) Sign(bearerDID did.BearerDID) error {
 
 // UnmarshalJSON validates and unmarshals the input data into an RFQ.
 func (r *RFQ) UnmarshalJSON(data []byte) error {
-	err := Validate(TypeMessage, data, WithKind(RFQKind))
+	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(RFQKind))
 	if err != nil {
 		return fmt.Errorf("invalid rfq: %w", err)
 	}
@@ -112,7 +113,7 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 
 	*r = RFQ(ret)
 
-	if err := VerifySignature(r, r.Signature); err != nil { return err }
+	if err := tbdex.VerifySignature(r, r.Signature); err != nil { return err }
 
 	// TODO verify private data
 	// if requirePrivateData {

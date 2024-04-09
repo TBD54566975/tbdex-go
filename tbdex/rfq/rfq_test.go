@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/offering"
+	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"go.jetpack.io/typeid"
@@ -17,16 +18,16 @@ func TestCreateRFQ(t *testing.T) {
 	walletDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
-	offeringID, err := typeid.WithPrefix(tbdex.OfferingKind)
+	offeringID, err := typeid.WithPrefix(offering.Kind)
 	assert.NoError(t, err)
 
-	_, err = tbdex.CreateRFQ(
+	_, err = rfq.CreateRFQ(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		tbdex.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		tbdex.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
-		tbdex.WithRFQExternalID("test_1234"),
+		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
+		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
+		rfq.WithRFQExternalID("test_1234"),
 	)
 
 	assert.NoError(t, err)
@@ -35,19 +36,19 @@ func TestCreateRFQ(t *testing.T) {
 func TestCreateRFQ_WithPrivate(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
-	offeringID, _ := typeid.WithPrefix(tbdex.OfferingKind)
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
-	rfq, err := tbdex.CreateRFQ(
+	rfq, err := rfq.CreateRFQ(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		tbdex.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		tbdex.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", tbdex.WithPayoutMethodWithPrivate(
+		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
+		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithPrivate(
 			map[string]interface{}{
 			"accountNumber":     "1234567890123456",
 			"routingNumber":     "123456789",
 		},)),
-		tbdex.WithRFQClaims([]string{"my_jwt"}),
+		rfq.WithRFQClaims([]string{"my_jwt"}),
 	)
 
 	assert.NoError(t, err)
@@ -59,14 +60,14 @@ func TestRFQ_Sign(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 
 	walletDID, _ := didjwk.Create()
-	offeringID, _ := typeid.WithPrefix(tbdex.OfferingKind)
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
-	r, _ := tbdex.CreateRFQ(
+	r, _ := rfq.CreateRFQ(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		tbdex.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		tbdex.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
+		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
+		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
 	)
 	
 	err := r.Sign(walletDID)
@@ -77,19 +78,19 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 
 	walletDID, _ := didjwk.Create()
-	offeringID, _ := typeid.WithPrefix(tbdex.OfferingKind)
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
-	r, _ := tbdex.CreateRFQ(
+	r, _ := rfq.CreateRFQ(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		tbdex.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		tbdex.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", tbdex.WithPayoutMethodWithPrivate(
+		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
+		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithPrivate(
 			map[string]interface{}{
 			"accountNumber":     "1234567890123456",
 			"routingNumber":     "123456789",
 		},)),
-		tbdex.WithRFQClaims([]string{"my_jwt"}),
+		rfq.WithRFQClaims([]string{"my_jwt"}),
 	)
 	
 	_ = r.Sign(walletDID)
@@ -97,7 +98,7 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
 
-	var rfq tbdex.RFQ
+	var rfq rfq.RFQ
 	err = rfq.UnmarshalJSON(bytes)
 	assert.NoError(t, err)
 }
@@ -105,7 +106,7 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 func TestRFQ_Unmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
-	var rfq tbdex.RFQ
+	var rfq rfq.RFQ
 	err := rfq.UnmarshalJSON(input)
 	assert.Error(t, err)
 }
