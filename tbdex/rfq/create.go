@@ -1,4 +1,4 @@
-package tbdex
+package rfq
 
 import (
 	"crypto/rand"

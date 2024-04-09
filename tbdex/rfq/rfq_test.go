@@ -1,4 +1,4 @@
-package tbdex_test
+package rfq_test
 
 import (
 	"encoding/json"
