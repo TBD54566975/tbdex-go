@@ -2,6 +2,7 @@ package rfq_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
@@ -21,13 +22,13 @@ func TestCreateRFQ(t *testing.T) {
 	offeringID, err := typeid.WithPrefix(offering.Kind)
 	assert.NoError(t, err)
 
-	_, err = rfq.CreateRFQ(
+	_, err = rfq.Create(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
-		rfq.WithRFQExternalID("test_1234"),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT"),
+		rfq.ExternalID("test_1234"),
 	)
 
 	assert.NoError(t, err)
@@ -38,18 +39,21 @@ func TestCreateRFQ_WithPrivate(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
-	rfq, err := rfq.CreateRFQ(
+	rfq, err := rfq.Create(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithDetails(
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT", rfq.PaymentDetails(
 			map[string]interface{}{
 				"accountNumber": "1234567890123456",
 				"routingNumber": "123456789",
 			})),
-		rfq.WithRFQClaims([]string{"my_jwt"}),
+		rfq.Claims([]string{"my_jwt"}),
 	)
+
+	b, _ := json.MarshalIndent(rfq, "", "  ")
+	fmt.Println(string(b))
 
 	assert.NoError(t, err)
 	assert.NotZero(t, rfq.Data.Payout.PaymentDetailsHash)
@@ -62,12 +66,12 @@ func TestRFQ_Sign(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
-	r, _ := rfq.CreateRFQ(
+	r, _ := rfq.Create(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT"),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT"),
 	)
 
 	err := r.Sign(walletDID)
@@ -80,17 +84,17 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
-	r, _ := rfq.CreateRFQ(
+	r, _ := rfq.Create(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
-		rfq.WithRFQSelectedPayinMethod("100", "STORED_BALANCE"),
-		rfq.WithRFQSelectedPayoutMethod("BANK_ACCOUNT", rfq.WithPayoutMethodWithDetails(
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT", rfq.PaymentDetails(
 			map[string]interface{}{
 				"accountNumber": "1234567890123456",
 				"routingNumber": "123456789",
 			})),
-		rfq.WithRFQClaims([]string{"my_jwt"}),
+		rfq.Claims([]string{"my_jwt"}),
 	)
 
 	_ = r.Sign(walletDID)

@@ -10,13 +10,13 @@ import (
 	"go.jetpack.io/typeid"
 )
 
-// CreateRFQ creates an [RFQ]
+// Create creates an [RFQ]
 //
 // # An RFQ is a resource created by a customer of the PFI to request a quote
 //
 // [RFQ]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#rfq-request-for-quote
-func CreateRFQ(from, to, offeringID string, payin PayinMethodWithDetails, payout PayoutMethodWithDetails, opts ...CreateRFQOption) (RFQ, error) {
-	r := createRFQOptions{
+func Create(from, to, offeringID string, payin PayinMethodWithDetails, payout PayoutMethodWithDetails, opts ...CreateOption) (RFQ, error) {
+	r := createOptions{
 		id:         typeid.Must(typeid.WithPrefix(RFQKind)).String(),
 		createdAt:  time.Now(),
 		protocol:   "1.0",
@@ -133,7 +133,7 @@ type rfqHashes struct {
 	ClaimsHash string
 }
 
-type createRFQOptions struct {
+type createOptions struct {
 	id         string
 	createdAt  time.Time
 	protocol   string
@@ -141,80 +141,79 @@ type createRFQOptions struct {
 	claims     []string
 }
 
-// CreateRFQOption is a function type used to apply options to RFQ creation.
-type CreateRFQOption func(*createRFQOptions)
+// CreateOption is a function type used to apply options to RFQ creation.
+type CreateOption func(*createOptions)
 
-// WithRFQID can be passed to [CreateRFQ] to provide a custom id.
-func WithRFQID(id string) CreateRFQOption {
-	return func(r *createRFQOptions) {
+// ID can be passed to [Create] to provide a custom id.
+func ID(id string) CreateOption {
+	return func(r *createOptions) {
 		r.id = id
 	}
 }
 
-// WithRFQCreatedAt can be passed to [CreateRFQ] to provide a custom created at time.
-func WithRFQCreatedAt(t time.Time) CreateRFQOption {
-	return func(r *createRFQOptions) {
+// CreatedAt can be passed to [Create] to provide a custom created at time.
+func CreatedAt(t time.Time) CreateOption {
+	return func(r *createOptions) {
 		r.createdAt = t
 	}
 }
 
-// WithRFQExternalID can be passed to [CreateRFQ] to provide a custom external id.
-func WithRFQExternalID(externalID string) CreateRFQOption {
-	return func(r *createRFQOptions) {
+// ExternalID can be passed to [Create] to provide a custom external id.
+func ExternalID(externalID string) CreateOption {
+	return func(r *createOptions) {
 		r.externalID = externalID
 	}
 }
 
-// WithRFQClaims can be passed to [CreateRFQ] to provide a custom external id.
-func WithRFQClaims(claims []string) CreateRFQOption {
-	return func(r *createRFQOptions) {
+// Claims can be passed to [Create] to provide a custom external id.
+func Claims(claims []string) CreateOption {
+	return func(r *createOptions) {
 		r.claims = claims
 	}
 }
 
-// PayinMethodWithDetailsOption is a function type used to apply options to [PayinMethodWithDetails] creation.
-type PayinMethodWithDetailsOption func(*PayinMethodWithDetails)
+type paymentMethodOptions struct {
+	details map[string]any
+}
 
-// PayoutMethodWithDetailsOption is a function type used to apply options to [PayoutMethodWithDetails] creation.
-type PayoutMethodWithDetailsOption func(*PayoutMethodWithDetails)
+type PaymentMethodOption func(*paymentMethodOptions)
 
-// WithPayinMethodWithDetails can be passed to [WithRFQSelectedPayinMethod] to provide arbitrary payment details.
-func WithPayinMethodWithDetails(details map[string]any) PayinMethodWithDetailsOption {
-	return func(pm *PayinMethodWithDetails) {
-		pm.PaymentDetails = details
+// PaymentDetails can be passed to [Payin] to provide arbitrary payment details.
+func PaymentDetails(details map[string]any) PaymentMethodOption {
+	return func(pm *paymentMethodOptions) {
+		pm.details = details
 	}
 }
 
-// WithPayoutMethodWithDetails can be passed to [WithRFQSelectedPayoutMethod] to provide arbitrary payment details.
-func WithPayoutMethodWithDetails(details map[string]any) PayoutMethodWithDetailsOption {
-	return func(pm *PayoutMethodWithDetails) {
-		pm.PaymentDetails = details
-	}
-}
-
-// WithRFQSelectedPayinMethod can be passed to [Create] to provide a payin method.
-func WithRFQSelectedPayinMethod(amount, kind string, opts ...PayinMethodWithDetailsOption) PayinMethodWithDetails {
+// Payin can be passed to [Create] to provide a payin method.
+func Payin(amount, kind string, opts ...PaymentMethodOption) PayinMethodWithDetails {
 	s := PayinMethodWithDetails{
 		Amount: amount,
 		Kind:   kind,
 	}
 
+	o := paymentMethodOptions{}
 	for _, opt := range opts {
-		opt(&s)
+		opt(&o)
 	}
+
+	s.PaymentDetails = o.details
 
 	return s
 }
 
-// WithRFQSelectedPayoutMethod can be passed to [Create] to provide a payout method.
-func WithRFQSelectedPayoutMethod(kind string, opts ...PayoutMethodWithDetailsOption) PayoutMethodWithDetails {
+// Payout can be passed to [Create] to provide a payout method.
+func Payout(kind string, opts ...PaymentMethodOption) PayoutMethodWithDetails {
 	s := PayoutMethodWithDetails{
 		Kind: kind,
 	}
 
+	o := paymentMethodOptions{}
 	for _, opt := range opts {
-		opt(&s)
+		opt(&o)
 	}
+
+	s.PaymentDetails = o.details
 
 	return s
 }
