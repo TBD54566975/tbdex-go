@@ -14,9 +14,9 @@ const RFQKind = "rfq"
 // RFQ represents a request for quote message within the exchange.
 type RFQ struct {
 	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
-	Data            RFQData         `json:"data"`
-	PrivateData     *RFQPrivateData  `json:"privateData,omitempty"`
-	Signature       string          `json:"signature"`
+	Data            RFQData               `json:"data"`
+	PrivateData     *RFQPrivateData       `json:"privateData,omitempty"`
+	Signature       string                `json:"signature"`
 }
 
 // RFQData encapsulates the data content of a request for quote.
