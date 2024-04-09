@@ -176,6 +176,7 @@ type paymentMethodOptions struct {
 	details map[string]any
 }
 
+// PaymentMethodOption is a function type used to apply options to payment methods.
 type PaymentMethodOption func(*paymentMethodOptions)
 
 // PaymentDetails can be passed to [Payin] to provide arbitrary payment details.
