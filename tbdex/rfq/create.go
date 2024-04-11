@@ -173,7 +173,7 @@ func ExternalID(externalID string) CreateOption {
 	}
 }
 
-// Claims can be passed to [Create] to provide a custom external id.
+// Claims can be passed to [Create] to provide claims if required by the offering.
 func Claims(claims []string) CreateOption {
 	return func(r *createOptions) {
 		r.claims = claims
@@ -187,7 +187,7 @@ type paymentMethodOptions struct {
 // PaymentMethodOption is a function type used to apply options to payment methods.
 type PaymentMethodOption func(*paymentMethodOptions)
 
-// PaymentDetails can be passed to [Payin] to provide arbitrary payment details.
+// PaymentDetails can be passed to [Payin] or [Payout] to provide arbitrary payment details.
 func PaymentDetails(details map[string]any) PaymentMethodOption {
 	return func(pm *paymentMethodOptions) {
 		pm.details = details
