@@ -87,7 +87,7 @@ func Validate(dataType DataType, input []byte, opts ...ValidateOption) error {
 	var v any
 	err := json.Unmarshal(input, &v)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal input: %w", err)
+		return fmt.Errorf("failed to JSON unmarshal input: %w", err)
 	}
 
 	typeSchema := schemaMap[string(dataType)]
