@@ -2,7 +2,6 @@ package rfq_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
@@ -22,7 +21,7 @@ func TestCreateRFQ(t *testing.T) {
 	offeringID, err := typeid.WithPrefix(offering.Kind)
 	assert.NoError(t, err)
 
-	_, err = rfq.Create(
+	rfq, err := rfq.Create(
 		walletDID.URI,
 		pfiDID.URI,
 		offeringID.String(),
@@ -32,6 +31,10 @@ func TestCreateRFQ(t *testing.T) {
 	)
 
 	assert.NoError(t, err)
+	assert.Zero(t, rfq.PrivateData)
+	assert.Zero(t, rfq.Data.Payin.PaymentDetailsHash)
+	assert.Zero(t, rfq.Data.Payin.PaymentDetailsHash)
+	assert.Zero(t, rfq.Data.ClaimsHash)
 }
 
 func TestCreateRFQ_WithPrivate(t *testing.T) {
@@ -52,10 +55,8 @@ func TestCreateRFQ_WithPrivate(t *testing.T) {
 		rfq.Claims([]string{"my_jwt"}),
 	)
 
-	b, _ := json.MarshalIndent(rfq, "", "  ")
-	fmt.Println(string(b))
-
 	assert.NoError(t, err)
+	assert.Zero(t, rfq.Data.Payin.PaymentDetailsHash)
 	assert.NotZero(t, rfq.Data.Payout.PaymentDetailsHash)
 	assert.NotZero(t, rfq.Data.ClaimsHash)
 }
@@ -90,7 +91,7 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
 		rfq.Payout("BANK_ACCOUNT", rfq.PaymentDetails(
-			map[string]interface{}{
+			map[string]any{
 				"accountNumber": "1234567890123456",
 				"routingNumber": "123456789",
 			})),

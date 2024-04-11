@@ -3,66 +3,21 @@ package rfq
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/tbd54566975/web5-go/dids/did"
 )
 
-// RFQKind identifies this message kind
-const RFQKind = "rfq"
+// Kind identifies this message kind
+const Kind = "rfq"
 
 // RFQ represents a request for quote message within the exchange.
 type RFQ struct {
 	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
-	Data            RFQData               `json:"data"`
-	PrivateData     *RFQPrivateData       `json:"privateData,omitempty"`
+	Data            Data                  `json:"data"`
+	PrivateData     *PrivateData          `json:"privateData,omitempty"`
 	Signature       string                `json:"signature"`
-}
-
-// RFQData encapsulates the data content of a request for quote.
-type RFQData struct {
-	OfferingID string               `json:"offeringId"`
-	Payin      SelectedPayinMethod  `json:"payin"`
-	Payout     SelectedPayoutMethod `json:"payout"`
-	ClaimsHash string               `json:"claimsHash,omitempty"`
-}
-
-// RFQPrivateData contains data which can be detached from the payload without disrupting integrity.
-type RFQPrivateData struct {
-	Salt   string                 `json:"salt,omitempty"`
-	Claims []string               `json:"claims,omitempty"`
-	Payin  *PrivatePaymentDetails `json:"payin,omitempty"`
-	Payout *PrivatePaymentDetails `json:"payout,omitempty"`
-}
-
-// PrivatePaymentDetails is a container for the cleartest [PaymentDetails]
-type PrivatePaymentDetails struct {
-	PaymentDetails map[string]any `json:"paymentDetails,omitempty"`
-}
-
-// SelectedPayinMethod represents the chosen method for the pay-in
-type SelectedPayinMethod struct {
-	Amount             string `json:"amount"`
-	Kind               string `json:"kind"`
-	PaymentDetailsHash string `json:"paymentDetailsHash,omitempty"`
-}
-
-// SelectedPayoutMethod represents the chosen method for the pay-out
-type SelectedPayoutMethod struct {
-	Kind               string `json:"kind"`
-	PaymentDetailsHash string `json:"paymentDetailsHash,omitempty"`
-}
-
-// Digest computes a hash of the rfq
-func (r RFQ) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.Data}
-
-	hashed, err := tbdex.DigestJSON(payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to digest rfq: %w", err)
-	}
-
-	return hashed, nil
 }
 
 // Sign cryptographically signs the RFQ using DID's private key
@@ -81,7 +36,7 @@ func (r *RFQ) Sign(bearerDID did.BearerDID) error {
 
 // UnmarshalJSON validates and unmarshals the input data into an RFQ.
 func (r *RFQ) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(RFQKind))
+	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid rfq: %w", err)
 	}
@@ -119,6 +74,130 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 func (r *RFQ) verifyAllPrivateData() error {
 
 	return nil
+}
+
+// Data encapsulates the data content of a request for quote.
+type Data struct {
+	OfferingID string               `json:"offeringId"`
+	Payin      ScrubbedPayinMethod  `json:"payin"`
+	Payout     ScrubbedPayoutMethod `json:"payout"`
+	ClaimsHash string               `json:"claimsHash,omitempty"`
+}
+
+// PrivateData contains data which can be detached from the payload without disrupting integrity.
+type PrivateData struct {
+	Salt   string                `json:"salt,omitempty"`
+	Claims []string              `json:"claims,omitempty"`
+	Payin  PrivatePaymentDetails `json:"payin,omitempty"`
+	Payout PrivatePaymentDetails `json:"payout,omitempty"`
+}
+
+// IsZero checks if struct is empty
+func (p PrivateData) IsZero() bool {
+	v := reflect.ValueOf(p)
+	return v.IsZero()
+}
+
+// PrivatePaymentDetails contains the private payment details. used in [PrivateData]
+type PrivatePaymentDetails struct {
+	PaymentDetails PaymentMethodDetails `json:"paymentDetails,omitempty"`
+}
+
+// PayinMethod is used to create the payin method for an RFQ
+type PayinMethod struct {
+	Amount         string               `json:"amount"`
+	Kind           string               `json:"kind"`
+	PaymentDetails PaymentMethodDetails `json:"paymentDetails"`
+}
+
+// Scrub extracts the private data from the payin method and replaces it with a hash
+func (p *PayinMethod) Scrub(salt string, privateData *PrivateData) (ScrubbedPayinMethod, error) {
+	scrubbedPayin := ScrubbedPayinMethod{Amount: p.Amount, Kind: p.Kind}
+
+	if p.PaymentDetails == nil {
+		return scrubbedPayin, nil
+	}
+
+	hash, err := computeHash(salt, p.PaymentDetails)
+	if err != nil {
+		return ScrubbedPayinMethod{}, fmt.Errorf("failed to compute hash: %w", err)
+	}
+
+	scrubbedPayin.PaymentDetailsHash = hash
+	privateData.Payin = PrivatePaymentDetails{PaymentDetails: p.PaymentDetails}
+
+	return scrubbedPayin, nil
+}
+
+// PayoutMethod is used to create the payout method for an RFQ
+type PayoutMethod struct {
+	Kind           string               `json:"kind"`
+	PaymentDetails PaymentMethodDetails `json:"paymentDetails"`
+}
+
+// Scrub extracts the private data from the payout method and replaces it with a hash
+func (p *PayoutMethod) Scrub(salt string, privateData *PrivateData) (ScrubbedPayoutMethod, error) {
+	scrubbedPayout := ScrubbedPayoutMethod{Kind: p.Kind}
+	if p.PaymentDetails == nil {
+		return scrubbedPayout, nil
+	}
+
+	hash, err := computeHash(salt, p.PaymentDetails)
+	if err != nil {
+		return ScrubbedPayoutMethod{}, fmt.Errorf("failed to compute hash: %w", err)
+	}
+
+	scrubbedPayout.PaymentDetailsHash = hash
+	privateData.Payout = PrivatePaymentDetails{PaymentDetails: p.PaymentDetails}
+
+	return scrubbedPayout, nil
+}
+
+// ClaimsSet is a set of claims
+type ClaimsSet []string
+
+// Scrub extracts claims from the payin method and replaces it with a hash
+func (c ClaimsSet) Scrub(salt string, privateData *PrivateData) (string, error) {
+	if c == nil || len(c) == 0 {
+		return "", nil
+	}
+
+	scrubbedClaims, err := computeHash(salt, c)
+	if err != nil {
+		return "", err
+	}
+
+	privateData.Claims = c
+
+	return scrubbedClaims, nil
+}
+
+// ScrubbedPayinMethod represents the chosen method for the pay-in
+type ScrubbedPayinMethod struct {
+	Amount             string `json:"amount"`
+	Kind               string `json:"kind"`
+	PaymentDetailsHash string `json:"paymentDetailsHash,omitempty"`
+}
+
+// ScrubbedPayoutMethod represents the chosen method for the pay-out
+type ScrubbedPayoutMethod struct {
+	Kind               string `json:"kind"`
+	PaymentDetailsHash string `json:"paymentDetailsHash,omitempty"`
+}
+
+// PaymentMethodDetails is a map populated with the required payment details specified by an offering
+type PaymentMethodDetails map[string]any
+
+// Digest computes a hash of the rfq
+func (r RFQ) Digest() ([]byte, error) {
+	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.Data}
+
+	hashed, err := tbdex.DigestJSON(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to digest rfq: %w", err)
+	}
+
+	return hashed, nil
 }
 
 type rfq RFQ
