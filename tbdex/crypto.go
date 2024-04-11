@@ -2,6 +2,7 @@ package tbdex
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,6 +47,20 @@ func DigestJSON(payload any) ([]byte, error) {
 	hash := sha256.Sum256(canonicalized)
 
 	return hash[:], nil
+}
+
+// VerifyDigest verifies that the digest of a given payload matches the expected digest.
+func VerifyDigest(expectedDigest string, payload any) error {
+	digestByteArray, err := DigestJSON(payload)
+	if err != nil {
+		return fmt.Errorf("failed to digest while verifying: %w", err)
+	}
+	digestEncodedString := base64.URLEncoding.EncodeToString(digestByteArray)
+
+	if digestEncodedString != expectedDigest {
+		return fmt.Errorf("digested payload does not equal expected expectedDigest: %w", err)
+	}
+	return nil
 }
 
 // VerifySignature verifies the given signature and the signed payload

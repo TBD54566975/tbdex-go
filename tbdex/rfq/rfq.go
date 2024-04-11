@@ -29,15 +29,15 @@ type RFQData struct {
 
 // RFQPrivateData contains data which can be detached from the payload without disrupting integrity.
 type RFQPrivateData struct {
-	Salt   string                 `json:"salt"`
-	Claims []string               `json:"claims"`
-	Payin  *PrivatePaymentDetails `json:"payin"`
-	Payout *PrivatePaymentDetails `json:"payout"`
+	Salt   string                 `json:"salt,omitempty"`
+	Claims []string               `json:"claims,omitempty"`
+	Payin  *PrivatePaymentDetails `json:"payin,omitempty"`
+	Payout *PrivatePaymentDetails `json:"payout,omitempty"`
 }
 
 // PrivatePaymentDetails is a container for the cleartest [PaymentDetails]
 type PrivatePaymentDetails struct {
-	PaymentDetails map[string]any `json:"paymentDetails"`
+	PaymentDetails map[string]any `json:"paymentDetails,omitempty"`
 }
 
 // SelectedPayinMethod represents the chosen method for the pay-in

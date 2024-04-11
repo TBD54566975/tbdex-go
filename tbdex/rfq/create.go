@@ -2,7 +2,6 @@ package rfq
 
 import (
 	"encoding/base64"
-	"fmt"
 	"time"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
@@ -27,9 +26,49 @@ func Create(from, to, offeringID string, payin PayinMethodWithDetails, payout Pa
 		opt(&r)
 	}
 
-	hashedData, privateData, err := hashData(&payin, &payout, r.claims)
-	if err != nil {
-		return RFQ{}, fmt.Errorf("failed to hash private data: %w", err)
+	privateData := RFQPrivateData{}
+	var hashedPayin string
+	var hashedPayout string
+	var hashedClaims string
+	if (len(payin.PaymentDetails) != 0) || (len(payout.PaymentDetails) != 0) || (len(r.claims) != 0) {
+		randomBytes, err := crypto.GenerateEntropy(crypto.Entropy128)
+		if err != nil {
+			return RFQ{}, err
+		}
+
+		salt := base64.RawURLEncoding.EncodeToString(randomBytes)
+		privateData.Salt = salt
+
+		if len(payin.PaymentDetails) != 0 {
+			hashedPayin, err = hashData(salt, payin)
+			if err != nil {
+				return RFQ{}, err
+			}
+			privateData.Payin = &PrivatePaymentDetails{
+				PaymentDetails: payin.PaymentDetails,
+			}
+		}
+
+		if len(payout.PaymentDetails) != 0 {
+			hashedPayout, err = hashData(salt, payout)
+			if err != nil {
+				return RFQ{}, err
+			}
+
+			privateData.Payout = &PrivatePaymentDetails{
+				PaymentDetails: payout.PaymentDetails,
+			}
+		}
+
+		if len(r.claims) != 0 {
+			hashedClaims, err = hashData(salt, r.claims)
+			if err != nil {
+				return RFQ{}, err
+			}
+
+			privateData.Claims = r.claims
+		}
+
 	}
 
 	return RFQ{
@@ -48,57 +87,26 @@ func Create(from, to, offeringID string, payin PayinMethodWithDetails, payout Pa
 			Payin: SelectedPayinMethod{
 				Amount:             payin.Amount,
 				Kind:               payin.Kind,
-				PaymentDetailsHash: hashedData.PayinHash,
+				PaymentDetailsHash: hashedPayin,
 			},
 			Payout: SelectedPayoutMethod{
 				Kind:               payin.Kind,
-				PaymentDetailsHash: hashedData.PayoutHash,
+				PaymentDetailsHash: hashedPayout,
 			},
-			ClaimsHash: hashedData.ClaimsHash,
+			ClaimsHash: hashedClaims,
 		},
 		PrivateData: &privateData,
 	}, nil
 }
 
-func hashData(payin *PayinMethodWithDetails, payout *PayoutMethodWithDetails, claims []string) (rfqHashes, RFQPrivateData, error) {
-	randomBytes, err := crypto.GenerateEntropy(crypto.Entropy128)
+func hashData(salt string, data any) (string, error) {
+	digest, err := digestData(salt, data)
+
 	if err != nil {
-		return rfqHashes{}, RFQPrivateData{}, err
+		return "", err
 	}
 
-	salt := base64.URLEncoding.EncodeToString(randomBytes)
-
-	payinHash, err := digestData(salt, payin)
-	if err != nil {
-		return rfqHashes{}, RFQPrivateData{}, err
-	}
-	payoutHash, err := digestData(salt, payout)
-	if err != nil {
-		return rfqHashes{}, RFQPrivateData{}, err
-	}
-	claimsHash, err := digestData(salt, claims)
-	if err != nil {
-		return rfqHashes{}, RFQPrivateData{}, err
-	}
-
-	h := rfqHashes{
-		PayinHash:  payinHash,
-		PayoutHash: payoutHash,
-		ClaimsHash: claimsHash,
-	}
-
-	p := RFQPrivateData{
-		Salt: salt,
-		Payin: &PrivatePaymentDetails{
-			PaymentDetails: payin.PaymentDetails,
-		},
-		Payout: &PrivatePaymentDetails{
-			PaymentDetails: payout.PaymentDetails,
-		},
-		Claims: claims,
-	}
-
-	return h, p, nil
+	return digest, nil
 }
 
 func digestData(salt string, data any) (string, error) {
