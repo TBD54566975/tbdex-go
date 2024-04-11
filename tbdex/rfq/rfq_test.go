@@ -104,7 +104,7 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = rfq.UnmarshalJSON(bytes, true)
 	assert.NoError(t, err)
 }
 
@@ -112,6 +112,6 @@ func TestRFQ_Unmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	var rfq rfq.RFQ
-	err := rfq.UnmarshalJSON(input)
+	err := rfq.UnmarshalJSON(input, false)
 	assert.Error(t, err)
 }
