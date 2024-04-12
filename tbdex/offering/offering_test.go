@@ -53,28 +53,30 @@ func TestUnmarshal(t *testing.T) {
 	bearerDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
-	requiredPayoutDetails := offering.RequiredDetails(`{
-		"$schema": "http://json-schema.org/draft-07/schema#",
-		"additionalProperties": false,
-		"properties": {
-			"clabe": {
-				"type": "string"
-			},
-			"fullName": {
-				"type": "string"
-			}
-		},
-		"required": ["clabe", "fullName"]
-	}`)
-
 	o, err := offering.Create(
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
 		),
 		offering.NewPayout(
-			"USDC",
-			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute, requiredPayoutDetails)},
+			"MXN",
+			[]offering.PayoutMethod{offering.NewPayoutMethod(
+				"STORED_BALANCE",
+				20*time.Minute,
+				offering.RequiredDetails(`{
+					"$schema": "http://json-schema.org/draft-07/schema#",
+					"additionalProperties": false,
+					"properties": {
+						"clabe": {
+							"type": "string"
+						},
+						"fullName": {
+							"type": "string"
+						}
+					},
+					"required": ["clabe", "fullName"]
+				}`),
+			)},
 		),
 		"1.0",
 	)
