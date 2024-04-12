@@ -49,27 +49,27 @@ type PayoutDetails struct {
 
 // PayinMethod represents a single payment option on an Offering.
 type PayinMethod struct {
-	Kind                   string `json:"kind"`
-	Name                   string `json:"name,omitempty"`
-	Description            string `json:"description,omitempty"`
-	Group                  string `json:"group,omitempty"`
-	RequiredPaymentDetails string `json:"requiredPaymentDetails,omitempty"` // TODO: change to JSON Schema type
-	Fee                    string `json:"fee,omitempty"`
-	Min                    string `json:"min,omitempty"`
-	Max                    string `json:"max,omitempty"`
+	Kind                   string          `json:"kind"`
+	Name                   string          `json:"name,omitempty"`
+	Description            string          `json:"description,omitempty"`
+	Group                  string          `json:"group,omitempty"`
+	RequiredPaymentDetails json.RawMessage `json:"requiredPaymentDetails,omitempty"` // TODO: change to JSON Schema type
+	Fee                    string          `json:"fee,omitempty"`
+	Min                    string          `json:"min,omitempty"`
+	Max                    string          `json:"max,omitempty"`
 }
 
 // PayoutMethod contains all the fields from PaymentMethod, in addition to estimated settlement time.
 type PayoutMethod struct {
-	Kind                    string `json:"kind"`
-	Name                    string `json:"name,omitempty"`
-	Description             string `json:"description,omitempty"`
-	Group                   string `json:"group,omitempty"`
-	RequiredPaymentDetails  string `json:"requiredPaymentDetails,omitempty"` // TODO: change to JSON Schema type
-	Fee                     string `json:"fee,omitempty"`
-	Min                     string `json:"min,omitempty"`
-	Max                     string `json:"max,omitempty"`
-	EstimatedSettlementTime uint64 `json:"estimatedSettlementTime"`
+	Kind                    string          `json:"kind"`
+	Name                    string          `json:"name,omitempty"`
+	Description             string          `json:"description,omitempty"`
+	Group                   string          `json:"group,omitempty"`
+	RequiredPaymentDetails  json.RawMessage `json:"requiredPaymentDetails,omitempty"` // TODO: change to JSON Schema type
+	Fee                     string          `json:"fee,omitempty"`
+	Min                     string          `json:"min,omitempty"`
+	Max                     string          `json:"max,omitempty"`
+	EstimatedSettlementTime uint64          `json:"estimatedSettlementTime"`
 }
 
 // ID is a unique identifier for an Offering.
