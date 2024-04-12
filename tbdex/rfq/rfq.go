@@ -35,8 +35,8 @@ func (r *RFQ) Sign(bearerDID did.BearerDID) error {
 	return nil
 }
 
-// UnmarshalJSON validates and unmarshals the input data into an RFQ.
-func (r *RFQ) UnmarshalJSON(data []byte, requirePrivateData bool) error {
+// ValidateAndUnmarshalJSON validates and unmarshals the input data into an RFQ.
+func (r *RFQ) ValidateAndUnmarshalJSON(data []byte, verifyPrivateDataStrict bool) error {
 	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid rfq: %w", err)
@@ -61,12 +61,9 @@ func (r *RFQ) UnmarshalJSON(data []byte, requirePrivateData bool) error {
 	// }
 
 	// TODO verify private data
-	if requirePrivateData {
-		err = r.verifyAllPrivateData()
-		if err != nil {
-			return fmt.Errorf("failed to verify private data: %w", err)
-
-		}
+	err = r.verifyPrivateData(verifyPrivateDataStrict)
+	if err != nil {
+		return fmt.Errorf("failed to verify private data: %w", err)
 	}
 
 	return nil
@@ -196,34 +193,35 @@ func (r RFQ) Digest() ([]byte, error) {
 	return hashed, nil
 }
 
-func (r *RFQ) verifyAllPrivateData() error {
+func (r *RFQ) verifyPrivateData(strict bool) error {
 	if r.PrivateData == nil {
-		return errors.New("private data is missing")
+		if strict {
+			return errors.New("private data is missing")
+		}
+
+		return nil // no PrivateData to verify
 	}
 
-	if r.Data.ClaimsHash == "" {
-		return errors.New("required claims hash is missing")
-	}
-	payload := []any{r.PrivateData.Salt, r.PrivateData.Claims}
-	if err := tbdex.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
-		return err
+	if strict || r.Data.ClaimsHash != "" {
+		payload := []any{r.PrivateData.Salt, r.PrivateData.Claims}
+		if err := tbdex.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
+			return fmt.Errorf("failed to verify claims: %w", err)
+		}
 	}
 
-	// if r.Data.Payin.PaymentDetailsHash == "" {
-	// 	return errors.New("required payin details hash is missing")
-	// }
-	// payload = []any{r.PrivateData.Salt, r.PrivateData.Payin}
-	// if err := tbdex.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
-	// 	return err
-	// }
+	if strict || r.Data.Payin.PaymentDetailsHash != "" {
+		payload := []any{r.PrivateData.Salt, r.PrivateData.Payin.PaymentDetails}
+		if err := tbdex.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
+			return fmt.Errorf("failed to verify payin: %w", err)
+		}
+	}
 
-	// if r.Data.Payout.PaymentDetailsHash == "" {
-	// 	return errors.New("required payout details hash is missing")
-	// }
-	// payload = []any{r.PrivateData.Salt, r.PrivateData.Payout}
-	// if err := tbdex.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
-	// 	return err
-	// }
+	if strict || r.Data.Payout.PaymentDetailsHash != "" {
+		payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
+		if err := tbdex.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
+			return fmt.Errorf("failed to verify payout: %w", err)
+		}
+	}
 
 	return nil
 }
