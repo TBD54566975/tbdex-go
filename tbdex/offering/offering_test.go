@@ -59,8 +59,24 @@ func TestUnmarshal(t *testing.T) {
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
 		),
 		offering.NewPayout(
-			"USDC",
-			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			"MXN",
+			[]offering.PayoutMethod{offering.NewPayoutMethod(
+				"STORED_BALANCE",
+				20*time.Minute,
+				offering.RequiredDetails(`{
+					"$schema": "http://json-schema.org/draft-07/schema#",
+					"additionalProperties": false,
+					"properties": {
+						"clabe": {
+							"type": "string"
+						},
+						"fullName": {
+							"type": "string"
+						}
+					},
+					"required": ["clabe", "fullName"]
+				}`),
+			)},
 		),
 		"1.0",
 	)

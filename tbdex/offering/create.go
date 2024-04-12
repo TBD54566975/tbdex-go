@@ -1,6 +1,7 @@
 package offering
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -186,7 +187,7 @@ type paymentMethodOptions struct {
 	Fee                    string
 	Name                   string
 	Description            string
-	RequiredPaymentDetails string
+	RequiredPaymentDetails json.RawMessage
 }
 
 // PaymentMethodOption implements functional options pattern for PayinMethod and PayoutMethod.
@@ -237,7 +238,7 @@ func MethodDescription(description string) PaymentMethodOption {
 // RequiredDetails can be passed to [Create] to provide a custom payin method required payment details.
 func RequiredDetails(details string) PaymentMethodOption {
 	return func(pm *paymentMethodOptions) {
-		pm.RequiredPaymentDetails = details
+		pm.RequiredPaymentDetails = json.RawMessage(details)
 	}
 }
 

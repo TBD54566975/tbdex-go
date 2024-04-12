@@ -55,7 +55,7 @@ func VerifyDigest(expectedDigest string, payload any) error {
 	if err != nil {
 		return fmt.Errorf("failed to digest while verifying: %w", err)
 	}
-	digestEncodedString := base64.URLEncoding.EncodeToString(digestByteArray)
+	digestEncodedString := base64.RawURLEncoding.EncodeToString(digestByteArray)
 
 	if digestEncodedString != expectedDigest {
 		return fmt.Errorf("digested payload does not equal expected expectedDigest: %w", err)
