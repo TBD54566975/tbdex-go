@@ -2,7 +2,6 @@ package offering_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -54,7 +53,7 @@ func TestUnmarshal(t *testing.T) {
 	bearerDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
-	sch := offering.RequiredDetails(`{
+	requiredPayoutDetails := offering.RequiredDetails(`{
 		"$schema": "http://json-schema.org/draft-07/schema#",
 		"additionalProperties": false,
 		"properties": {
@@ -75,7 +74,7 @@ func TestUnmarshal(t *testing.T) {
 		),
 		offering.NewPayout(
 			"USDC",
-			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute, sch)},
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute, requiredPayoutDetails)},
 		),
 		"1.0",
 	)
@@ -87,8 +86,6 @@ func TestUnmarshal(t *testing.T) {
 
 	bytes, err := json.Marshal(o)
 	assert.NoError(t, err)
-
-	fmt.Println(string(bytes))
 
 	var o2 offering.Offering
 	err = o2.UnmarshalJSON(bytes)
