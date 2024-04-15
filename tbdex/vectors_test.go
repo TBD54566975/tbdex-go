@@ -57,13 +57,15 @@ func readVector[T any](filename string) T {
 func TestRFQVectors(t *testing.T) {
 	vector := readVector[rfqVector]("parse-rfq.json")
 	input := rfq.RFQ{}
-	input.ValidateAndUnmarshalJSON([]byte(vector.Input), false)
+	err := input.ValidateAndUnmarshalJSON([]byte(vector.Input), false)
 
+	assert.NoError(t, err)
 	assert.Equal(t, input, vector.Output)
 
 	vector = readVector[rfqVector]("parse-rfq-omit-private-data.json")
 	input = rfq.RFQ{}
-	input.ValidateAndUnmarshalJSON([]byte(vector.Input), false)
+	err = input.ValidateAndUnmarshalJSON([]byte(vector.Input), false)
 
+	assert.NoError(t, err)
 	assert.Equal(t, input, vector.Output)
 }
