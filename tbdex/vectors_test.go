@@ -17,13 +17,9 @@ const (
 	vectorsDir = "vectors/"
 )
 
-type vectorDetails struct {
-	Filename string
-	Type     any
-}
-
-type tbdexType interface {
-	rfq.RFQ | offering.Offering
+type offeringVector struct {
+	Input  string            `json:"input"`
+	Output offering.Offering `json:"output"`
 }
 
 type rfqVector struct {
@@ -49,15 +45,25 @@ func readVector[T any](filename string) T {
 	return vector
 }
 
-func RFQVectors(t *testing.T) {
+// TODO fix requiredPaymentDetails type
+// func TestOfferingVectors(t *testing.T) {
+// 	vector := readVector[offeringVector]("parse-offering.json")
+// 	input := offering.Offering{}
+// 	input.UnmarshalJSON([]byte(vector.Input))
+
+// 	assert.Equal(t, input, vector.Output)
+// }
+
+func TestRFQVectors(t *testing.T) {
 	vector := readVector[rfqVector]("parse-rfq.json")
 	input := rfq.RFQ{}
 	input.ValidateAndUnmarshalJSON([]byte(vector.Input), false)
 
 	assert.Equal(t, input, vector.Output)
 
-	// rfq := rfq.RFQ{}
-	// rfq.ValidateAndUnmarshalJSON([]byte(vectorsMap["parse-rfq-omit-private-data"].Input), false)
+	vector = readVector[rfqVector]("parse-rfq-omit-private-data.json")
+	input = rfq.RFQ{}
+	input.ValidateAndUnmarshalJSON([]byte(vector.Input), false)
 
-	// assert.Equal(t, rfq, vectorsMap["parse-rfq"].Output)
+	assert.Equal(t, input, vector.Output)
 }
