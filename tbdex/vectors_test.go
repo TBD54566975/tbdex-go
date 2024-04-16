@@ -45,14 +45,14 @@ func readVector[T any](filename string) T {
 	return vector
 }
 
-// TODO fix requiredPaymentDetails type
-// func TestOfferingVectors(t *testing.T) {
-// 	vector := readVector[offeringVector]("parse-offering.json")
-// 	input := offering.Offering{}
-// 	input.UnmarshalJSON([]byte(vector.Input))
+func TestOfferingVectors(t *testing.T) {
+	vector := readVector[offeringVector]("parse-offering.json")
+	input := offering.Offering{}
+	err := input.UnmarshalJSON([]byte(vector.Input))
 
-// 	assert.Equal(t, input, vector.Output)
-// }
+	assert.NoError(t, err)
+	assert.Equal(t, input, vector.Output)
+}
 
 func TestRFQVectors(t *testing.T) {
 	vector := readVector[rfqVector]("parse-rfq.json")

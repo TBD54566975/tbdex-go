@@ -60,7 +60,6 @@ func (r *RFQ) ValidateAndUnmarshalJSON(data []byte, verifyPrivateDataStrict bool
 	// 	return errors.New("signer: %w does not match message metadata from: %w", decoded.Header.SignerDID, r.MessageMetadata.From)
 	// }
 
-	// TODO verify private data
 	err = r.verifyPrivateData(verifyPrivateDataStrict)
 	if err != nil {
 		return fmt.Errorf("failed to verify private data: %w", err)
