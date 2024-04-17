@@ -35,8 +35,8 @@ func (r *RFQ) Sign(bearerDID did.BearerDID) error {
 	return nil
 }
 
-// ValidateAndUnmarshalJSON validates and unmarshals the input data into an RFQ.
-func (r *RFQ) ValidateAndUnmarshalJSON(data []byte, verifyPrivateDataStrict bool) error {
+// UnmarshalJSON validates and unmarshals the input data into an RFQ.
+func (r *RFQ) UnmarshalJSON(data []byte) error {
 	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid rfq: %w", err)
@@ -50,7 +50,12 @@ func (r *RFQ) ValidateAndUnmarshalJSON(data []byte, verifyPrivateDataStrict bool
 
 	*r = RFQ(ret)
 
-	_, err = tbdex.VerifySignature(r, r.Signature)
+	return nil
+}
+
+// Verify verifies the signature and private data hashes of the RFQ.
+func (r *RFQ) Verify(privateDataStrict bool) error {
+	_, err := tbdex.VerifySignature(r, r.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify RFQ signature: %w", err)
 	}
@@ -60,9 +65,85 @@ func (r *RFQ) ValidateAndUnmarshalJSON(data []byte, verifyPrivateDataStrict bool
 	// 	return errors.New("signer: %w does not match message metadata from: %w", decoded.Header.SignerDID, r.MessageMetadata.From)
 	// }
 
-	err = r.verifyPrivateData(verifyPrivateDataStrict)
+	err = r.verifyPrivateData(privateDataStrict)
 	if err != nil {
 		return fmt.Errorf("failed to verify private data: %w", err)
+	}
+
+	return nil
+}
+
+// Parse validates, parses input data into an RFQ, and verifies the signature and private data.
+func (r *RFQ) Parse(data []byte, privateDataStrict bool) error {
+	err := r.UnmarshalJSON(data)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal RFQ: %w", err)
+	}
+
+	err = r.Verify(privateDataStrict)
+	if err != nil {
+		return fmt.Errorf("failed to verify RFQ: %w", err)
+	}
+
+	return nil
+}
+
+// Digest computes a hash of the rfq
+func (r RFQ) Digest() ([]byte, error) {
+	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.Data}
+
+	hashed, err := tbdex.DigestJSON(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to digest rfq: %w", err)
+	}
+
+	return hashed, nil
+}
+
+func (r *RFQ) verifyPrivateData(strict bool) error {
+	if strict == false {
+		if r.PrivateData == nil {
+			return nil
+		}
+	}
+
+	if r.Data.ClaimsHash != "" {
+		if strict && len(r.PrivateData.Claims) == 0 {
+			return errors.New("strict verification: claims hash is set but claims are missing")
+
+		}
+		if len(r.PrivateData.Claims) != 0 {
+			payload := []any{r.PrivateData.Salt, r.PrivateData.Claims}
+			if err := tbdex.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
+				return fmt.Errorf("failed to verify claims: %w", err)
+			}
+		}
+	}
+
+	if r.Data.Payin.PaymentDetailsHash != "" {
+		if strict && (r.PrivateData.Payin.PaymentDetails == nil) {
+			return errors.New("strict verification: payin details hash is set but payin details are missing")
+
+		}
+		if len(r.PrivateData.Payin.PaymentDetails) != 0 {
+			payload := []any{r.PrivateData.Salt, r.PrivateData.Payin.PaymentDetails}
+			if err := tbdex.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
+				return fmt.Errorf("failed to verify payin: %w", err)
+			}
+		}
+	}
+
+	if r.Data.Payout.PaymentDetailsHash != "" {
+		if strict && (r.PrivateData.Payout.PaymentDetails == nil) {
+			return errors.New("strict verification: payout details hash is set but payout details are missing")
+
+		}
+		if len(r.PrivateData.Payout.PaymentDetails) != 0 {
+			payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
+			if err := tbdex.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
+				return fmt.Errorf("failed to verify payout: %w", err)
+			}
+		}
 	}
 
 	return nil
@@ -179,50 +260,5 @@ type ScrubbedPayoutMethod struct {
 
 // PaymentMethodDetails is a map populated with the required payment details specified by an offering
 type PaymentMethodDetails map[string]any
-
-// Digest computes a hash of the rfq
-func (r RFQ) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.Data}
-
-	hashed, err := tbdex.DigestJSON(payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to digest rfq: %w", err)
-	}
-
-	return hashed, nil
-}
-
-func (r *RFQ) verifyPrivateData(strict bool) error {
-	if r.PrivateData == nil {
-		if strict {
-			return errors.New("private data is missing")
-		}
-
-		return nil // no PrivateData to verify
-	}
-
-	if strict || r.Data.ClaimsHash != "" {
-		payload := []any{r.PrivateData.Salt, r.PrivateData.Claims}
-		if err := tbdex.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
-			return fmt.Errorf("failed to verify claims: %w", err)
-		}
-	}
-
-	if strict || r.Data.Payin.PaymentDetailsHash != "" {
-		payload := []any{r.PrivateData.Salt, r.PrivateData.Payin.PaymentDetails}
-		if err := tbdex.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
-			return fmt.Errorf("failed to verify payin: %w", err)
-		}
-	}
-
-	if strict || r.Data.Payout.PaymentDetailsHash != "" {
-		payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
-		if err := tbdex.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
-			return fmt.Errorf("failed to verify payout: %w", err)
-		}
-	}
-
-	return nil
-}
 
 type rfq RFQ
