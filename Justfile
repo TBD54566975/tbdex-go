@@ -15,3 +15,8 @@ lint:
 schemas:
   @git submodule update --init --recursive
   @cp -r spec/hosted/json-schemas tbdex/
+
+  # Copies test vectors from the tbdex submodule repo into the vectors dir.
+vectors:
+  @git submodule update --init --recursive
+  @cp -r spec/hosted/test-vectors/protocol/vectors tbdex/

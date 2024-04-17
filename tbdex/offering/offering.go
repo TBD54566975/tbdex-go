@@ -142,4 +142,31 @@ func (o *Offering) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Verify verifies the signature of the Offering.
+func (o *Offering) Verify() error {
+	_, err := tbdex.VerifySignature(o, o.Signature)
+	if err != nil {
+		return fmt.Errorf("failed to verify Offering signature: %w", err)
+	}
+
+	// TODO once implemented in web5-go
+	// if jws.SignerDID != o.From {
+	// 	return errors.New("SignerDID: %w does not equal Offering.From: %w", jws.SignerDID, o.From)
+	// }
+
+	return nil
+}
+
+// Parse validates, parses input data into an Offering, and verifies the signature.
+func (o *Offering) Parse(data []byte) error {
+	if err := o.UnmarshalJSON(data); err != nil {
+		return fmt.Errorf("failed to unmarshal Offering: %w", err)
+	}
+
+	if err := o.Verify(); err != nil {
+		return fmt.Errorf("failed to verify Offering: %w", err)
+	}
+	return nil
+}
+
 type offering Offering
