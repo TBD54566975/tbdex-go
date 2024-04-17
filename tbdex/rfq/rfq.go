@@ -125,7 +125,7 @@ func (r *RFQ) verifyPrivateData(strict bool) error {
 			return errors.New("strict verification: payin details hash is set but payin details are missing")
 
 		}
-		if len(r.PrivateData.Payin.PaymentDetails) != 0 {
+		if r.PrivateData.Payin.PaymentDetails != nil {
 			payload := []any{r.PrivateData.Salt, r.PrivateData.Payin.PaymentDetails}
 			if err := tbdex.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
 				return fmt.Errorf("failed to verify payin: %w", err)
@@ -138,7 +138,7 @@ func (r *RFQ) verifyPrivateData(strict bool) error {
 			return errors.New("strict verification: payout details hash is set but payout details are missing")
 
 		}
-		if len(r.PrivateData.Payout.PaymentDetails) != 0 {
+		if r.PrivateData.Payout.PaymentDetails != nil {
 			payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
 			if err := tbdex.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
 				return fmt.Errorf("failed to verify payout: %w", err)

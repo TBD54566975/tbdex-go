@@ -162,7 +162,35 @@ func TestRFQ_Verify_NoPrivateDataNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_PrivateDataStrict(t *testing.T) {
+func TestRFQ_Verify_FailsPrivateDataHashMismatch(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID.URI,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT"),
+		rfq.Claims([]string{"my_jwt"}),
+	)
+
+	_ = r.Sign(walletDID)
+	r.PrivateData.Claims = []string{"different_jwt"}
+
+	bytes, err := json.Marshal(r)
+	assert.NoError(t, err)
+
+	var rfq rfq.RFQ
+	err = rfq.UnmarshalJSON(bytes)
+	assert.NoError(t, err)
+
+	err = rfq.Verify(false)
+	assert.Error(t, err)
+}
+
+func TestRFQ_Verify_ClaimsPrivateDataStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -193,7 +221,7 @@ func TestRFQ_Verify_PrivateDataStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_FailsMissingDataForHashStrict(t *testing.T) {
+func TestRFQ_Verify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -221,7 +249,7 @@ func TestRFQ_Verify_FailsMissingDataForHashStrict(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRFQ_Verify_PassesMissingDataForHashNotStrict(t *testing.T) {
+func TestRFQ_Verify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -237,6 +265,68 @@ func TestRFQ_Verify_PassesMissingDataForHashNotStrict(t *testing.T) {
 
 	_ = r.Sign(walletDID)
 	r.PrivateData.Claims = nil
+
+	bytes, err := json.Marshal(r)
+	assert.NoError(t, err)
+
+	var rfq rfq.RFQ
+	err = rfq.UnmarshalJSON(bytes)
+	assert.NoError(t, err)
+
+	err = rfq.Verify(false)
+	assert.NoError(t, err)
+}
+
+func TestRFQ_Verify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID.URI,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT", rfq.PaymentDetails(
+			map[string]any{
+				"accountNumber": "1234567890123456",
+				"routingNumber": "123456789",
+			})),
+	)
+
+	_ = r.Sign(walletDID)
+	r.PrivateData.Payout.PaymentDetails = nil
+
+	bytes, err := json.Marshal(r)
+	assert.NoError(t, err)
+
+	var rfq rfq.RFQ
+	err = rfq.UnmarshalJSON(bytes)
+	assert.NoError(t, err)
+
+	err = rfq.Verify(true)
+	assert.Error(t, err)
+}
+
+func TestRFQ_Verify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID.URI,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT", rfq.PaymentDetails(
+			map[string]any{
+				"accountNumber": "1234567890123456",
+				"routingNumber": "123456789",
+			})),
+	)
+
+	_ = r.Sign(walletDID)
+	r.PrivateData.Payout.PaymentDetails = nil
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
