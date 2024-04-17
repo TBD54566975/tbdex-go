@@ -101,10 +101,8 @@ func (r RFQ) Digest() ([]byte, error) {
 }
 
 func (r *RFQ) verifyPrivateData(strict bool) error {
-	if strict == false {
-		if r.PrivateData == nil {
-			return nil
-		}
+	if strict == false && r.PrivateData == nil {
+		return nil
 	}
 
 	if r.Data.ClaimsHash != "" {

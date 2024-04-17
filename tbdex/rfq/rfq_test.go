@@ -162,7 +162,7 @@ func TestRFQ_Verify_NoPrivateDataNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_FailsPrivateDataHashMismatch(t *testing.T) {
+func TestRFQ_Verify_FailsClaimsHashMismatch(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -178,6 +178,76 @@ func TestRFQ_Verify_FailsPrivateDataHashMismatch(t *testing.T) {
 
 	_ = r.Sign(walletDID)
 	r.PrivateData.Claims = []string{"different_jwt"}
+
+	bytes, err := json.Marshal(r)
+	assert.NoError(t, err)
+
+	var rfq rfq.RFQ
+	err = rfq.UnmarshalJSON(bytes)
+	assert.NoError(t, err)
+
+	err = rfq.Verify(false)
+	assert.Error(t, err)
+}
+
+func TestRFQ_Verify_FailsPayoutHashMismatch(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID.URI,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT", rfq.PaymentDetails(
+			map[string]any{
+				"accountNumber": "1234567890123456",
+				"routingNumber": "123456789",
+			})),
+		rfq.Claims([]string{"my_jwt"}),
+	)
+
+	_ = r.Sign(walletDID)
+	r.PrivateData.Payout.PaymentDetails = map[string]any{
+		"accountNumber": "1234567890123456",
+		"routingNumber": "new_routing_number",
+	}
+
+	bytes, err := json.Marshal(r)
+	assert.NoError(t, err)
+
+	var rfq rfq.RFQ
+	err = rfq.UnmarshalJSON(bytes)
+	assert.NoError(t, err)
+
+	err = rfq.Verify(false)
+	assert.Error(t, err)
+}
+
+func TestRFQ_Verify_FailsPayinHashMismatch(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID.URI,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "BANK_ACCOUNT", rfq.PaymentDetails(
+			map[string]any{
+				"accountNumber": "1234567890123456",
+				"routingNumber": "123456789",
+			})),
+		rfq.Payout("STORED_BALANCE"),
+		rfq.Claims([]string{"my_jwt"}),
+	)
+
+	_ = r.Sign(walletDID)
+	r.PrivateData.Payin.PaymentDetails = map[string]any{
+		"accountNumber": "1234567890123456",
+		"routingNumber": "new_routing_number",
+	}
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
