@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/assert/v2 v2.6.0
 	github.com/gowebpki/jcs v1.0.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
-	github.com/tbd54566975/web5-go v0.14.0
+	github.com/tbd54566975/web5-go v0.15.0
 	go.jetpack.io/typeid v1.0.0
 )
 
