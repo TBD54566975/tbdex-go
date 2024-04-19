@@ -101,3 +101,55 @@ func TestUnmarshal_Invalid(t *testing.T) {
 	err := json.Unmarshal(input, &o)
 	assert.Error(t, err)
 }
+
+func TestVerify(t *testing.T) {
+	bearerDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	o, err := offering.Create(
+		offering.NewPayin(
+			"BTC",
+			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"60000.00",
+	)
+
+	assert.NoError(t, err)
+
+	err = o.Sign(bearerDID)
+	assert.NoError(t, err)
+
+	err = o.Verify()
+	assert.NoError(t, err)
+}
+
+func TestVerify_InvalidSignature(t *testing.T) {
+	bearerDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	o, err := offering.Create(
+		offering.NewPayin(
+			"BTC",
+			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"60000.00",
+	)
+
+	assert.NoError(t, err)
+
+	err = o.Sign(bearerDID)
+	assert.NoError(t, err)
+
+	o.Signature = "invalid"
+
+	err = o.Verify()
+	assert.Error(t, err)
+}
