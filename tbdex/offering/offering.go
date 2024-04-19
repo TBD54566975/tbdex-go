@@ -8,6 +8,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
+	"github.com/tbd54566975/web5-go/jws"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
 )
@@ -149,10 +150,13 @@ func (o *Offering) Verify() error {
 		return fmt.Errorf("failed to verify Offering signature: %w", err)
 	}
 
-	// TODO once implemented in web5-go
-	// if jws.SignerDID != o.From {
-	// 	return errors.New("SignerDID: %w does not equal Offering.From: %w", jws.SignerDID, o.From)
-	// }
+	decoded, err := jws.Decode(o.Signature)
+	if err != nil {
+		return fmt.Errorf("failed to decode Offering signature: %w", err)
+	}
+	if decoded.SignerDID.URI != o.ResourceMetadata.From {
+		return fmt.Errorf("SignerDID: %s does not equal Offering.From: %s", decoded.SignerDID.URI, o.ResourceMetadata.From)
+	}
 
 	return nil
 }
