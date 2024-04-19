@@ -439,3 +439,32 @@ func TestRFQ_Verify_FailsBadSignature(t *testing.T) {
 	err = rfq.Verify(false)
 	assert.Error(t, err)
 }
+
+
+func TestRFQ_Verify_InvalidSignature(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID.URI,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT"),
+	)
+
+	_ = r.Sign(walletDID)
+
+	r.Signature = "Invalid"
+
+	bytes, err := json.Marshal(r)
+	assert.NoError(t, err)
+
+	var rfq rfq.RFQ
+	err = rfq.UnmarshalJSON(bytes)
+	assert.NoError(t, err)
+
+	err = rfq.Verify(true)
+	assert.Error(t, err)
+}
