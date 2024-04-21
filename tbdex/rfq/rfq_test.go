@@ -92,7 +92,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		rfq.Payout("BANK_ACCOUNT"),
 	)
 
-	_ = r.Sign(walletDID)
+	r.Sign(walletDID)
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
@@ -347,7 +347,7 @@ func TestVerify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_Verify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
+func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)

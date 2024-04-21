@@ -185,6 +185,12 @@ func DetailsFee(fee string) QuoteDetailsOption {
 	}
 }
 
+func DetailsInstruction(p *PaymentInstruction) QuoteDetailsOption {
+	return func(q *quoteDetailsOptions) {
+		q.PaymentInstruction = p
+	}
+}
+
 func NewQuoteDetails(currencyCode string, amount string, opts ...QuoteDetailsOption) QuoteDetails {
 	q := quoteDetailsOptions{}
 	for _, opt := range opts {
