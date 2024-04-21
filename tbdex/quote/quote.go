@@ -13,19 +13,21 @@ import (
 // Kind identifies this message kind
 const Kind = "quote"
 
-// Quote represents a request for quote message within the exchange.
+// Quote represents a quote message within the exchange.
 type Quote struct {
 	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
 	Data            Data                  `json:"data"`
 	Signature       string                `json:"signature"`
 }
 
+// Data encapsulates the data content of a  quote.
 type Data struct {
 	ExpiresAt string       `json:"expiresAt"`
 	Payin     QuoteDetails `json:"payin"`
 	Payout    QuoteDetails `json:"payout"`
 }
 
+// QuoteDetails describes the relevant information of a currency that is being sent or received
 type QuoteDetails struct {
 	CurrencyCode       string              `json:"currencyCode"`
 	Amount             string              `json:"amount"`
@@ -33,6 +35,7 @@ type QuoteDetails struct {
 	PaymentInstruction *PaymentInstruction `json:"paymentInstruction,omitempty"`
 }
 
+// PaymentInstruction contains instructions with plain text and/or a link
 type PaymentInstruction struct {
 	Link        string `json:"link,omitempty"`
 	Instruction string `json:"instruction,omitempty"`
@@ -112,6 +115,7 @@ func (q *Quote) Parse(data []byte, privateDataStrict bool) error {
 	return nil
 }
 
+// Create generates a new Quote with the specified parameters and options.
 func Create(from, to, exchangeID, expiresAt string, payin, payout QuoteDetails, opts ...CreateOption) Quote {
 	q := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
@@ -142,6 +146,7 @@ type createOptions struct {
 	exchangeID string
 }
 
+// CreateOption defines a type for functions that can modify the createOptions struct.
 type CreateOption func(*createOptions)
 
 // ID can be passed to [Create] to provide a custom id.
@@ -177,20 +182,26 @@ type quoteDetailsOptions struct {
 	PaymentInstruction *PaymentInstruction
 }
 
+// QuoteDetailsOption defines a type for functions that can modify the quoteDetailsOptions struct.
 type QuoteDetailsOption func(*quoteDetailsOptions)
 
+// DetailsFee is an option for [NewQuoteDetails] that allows setting a custom fee for a [QuoteDetails].
 func DetailsFee(fee string) QuoteDetailsOption {
 	return func(q *quoteDetailsOptions) {
 		q.Fee = fee
 	}
 }
 
+// DetailsInstruction is an option for NewQuoteDetails that allows setting a custom [PaymentInstruction]
+// for a [QuoteDetails].
 func DetailsInstruction(p *PaymentInstruction) QuoteDetailsOption {
 	return func(q *quoteDetailsOptions) {
 		q.PaymentInstruction = p
 	}
 }
 
+// NewQuoteDetails creates a [QuoteDetails] object with the specified currency code, amount,
+// and optional modifications provided through [QuoteDetailsOption] functions.
 func NewQuoteDetails(currencyCode string, amount string, opts ...QuoteDetailsOption) QuoteDetails {
 	q := quoteDetailsOptions{}
 	for _, opt := range opts {
@@ -209,20 +220,24 @@ type paymentInstructionOptions struct {
 	Instruction string
 }
 
+// PaymentInstructionOptions defines a type for functions that can modify the paymentInstructionOptions struct.
 type PaymentInstructionOptions func(*paymentInstructionOptions)
 
+// InstructionLink is an option for [NewPaymentInstruction] that allows setting a custom link.
 func InstructionLink(link string) PaymentInstructionOptions {
 	return func(p *paymentInstructionOptions) {
 		p.Link = link
 	}
 }
 
+// Instruction is an option for [NewPaymentInstruction] that allows setting custom text.
 func Instruction(instruction string) PaymentInstructionOptions {
 	return func(p *paymentInstructionOptions) {
 		p.Instruction = instruction
 	}
 }
 
+// NewPaymentInstruction creates a new [PaymentInstruction] using the provided options.
 func NewPaymentInstruction(opts ...PaymentInstructionOptions) *PaymentInstruction {
 	p := paymentInstructionOptions{}
 	for _, opt := range opts {

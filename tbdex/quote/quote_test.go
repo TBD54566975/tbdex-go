@@ -76,7 +76,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		),
 	)
 
-	q.Sign(pfiDID)
+	_ = q.Sign(pfiDID)
 
 	bytes, err := json.Marshal(q)
 	assert.NoError(t, err)
@@ -108,7 +108,7 @@ func TestVerify(t *testing.T) {
 		quote.NewQuoteDetails("MXN", "500"),
 	)
 
-	quote.Sign(pfiDID)
+	_ = quote.Sign(pfiDID)
 
 	err := quote.Verify()
 	assert.NoError(t, err)
@@ -128,7 +128,7 @@ func TestVerify_FailsChangedPayload(t *testing.T) {
 		quote.NewQuoteDetails("MXN", "500"),
 	)
 
-	quote.Sign(pfiDID)
+	_ = quote.Sign(pfiDID)
 	quote.Data.ExpiresAt = "badtimestamp"
 
 	err := quote.Verify()

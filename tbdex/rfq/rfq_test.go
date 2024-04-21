@@ -92,7 +92,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		rfq.Payout("BANK_ACCOUNT"),
 	)
 
-	r.Sign(walletDID)
+	_ = r.Sign(walletDID)
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
