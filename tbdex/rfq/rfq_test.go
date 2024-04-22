@@ -441,7 +441,7 @@ func TestRFQ_Verify_FailsBadSignature(t *testing.T) {
 }
 
 
-func TestRFQ_Verify_InvalidSignature(t *testing.T) {
+func TestVerify_InvalidSignature(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
