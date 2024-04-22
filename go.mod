@@ -14,8 +14,13 @@ require (
 	github.com/alecthomas/repr v0.4.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/gofrs/uuid/v5 v5.0.0 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/tv42/zbase32 v0.0.0-20220222190657-f76a9fc892fa // indirect
+	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/tools v0.1.1 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

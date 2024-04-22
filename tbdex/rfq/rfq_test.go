@@ -8,6 +8,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
+	"github.com/tbd54566975/web5-go/jws"
 	"go.jetpack.io/typeid"
 )
 
@@ -440,7 +441,6 @@ func TestRFQ_Verify_FailsBadSignature(t *testing.T) {
 	assert.Error(t, err)
 }
 
-
 func TestVerify_InvalidSignature(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
@@ -467,4 +467,42 @@ func TestVerify_InvalidSignature(t *testing.T) {
 
 	err = rfq.Verify(true)
 	assert.Error(t, err)
+}
+
+func TestVerify_InvalidSignatureEmpty(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID.URI,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT"),
+	)
+
+	_ = r.Sign(walletDID)
+
+	bytes, err := json.Marshal(r)
+	assert.NoError(t, err)
+
+	var RFQ rfq.RFQ
+	err = RFQ.UnmarshalJSON(bytes)
+	assert.NoError(t, err)
+
+	originalFunc := rfq.VerifySignatureFunc
+	defer func() { rfq.VerifySignatureFunc = originalFunc }() // resets the function
+
+	rfq.VerifySignatureFunc = func(r *rfq.RFQ, signature string) (*jws.Decoded, error) {
+		did, _ := didjwk.Create()
+		decoded := &jws.Decoded{
+			SignerDID: did.DID,
+		}
+		return decoded, nil
+	}
+
+	err = RFQ.Verify(true)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "does not match message metadata from")
 }
