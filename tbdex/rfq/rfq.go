@@ -8,7 +8,6 @@ import (
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/tbd54566975/web5-go/dids/did"
-	"github.com/tbd54566975/web5-go/jws"
 )
 
 // Kind identifies this message kind
@@ -56,14 +55,9 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature and private data hashes of the RFQ.
 func (r *RFQ) Verify(privateDataStrict bool) error {
-	_, err := tbdex.VerifySignature(r, r.Signature)
+	decoded, err := tbdex.VerifySignature(r, r.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify RFQ signature: %w", err)
-	}
-
-	decoded, err := jws.Decode(r.Signature)
-	if err != nil {
-		return fmt.Errorf("failed to decode RFQ signature: %w", err)
 	}
 
 	if decoded.SignerDID.URI != r.MessageMetadata.From {

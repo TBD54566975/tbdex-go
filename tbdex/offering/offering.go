@@ -8,7 +8,6 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
-	"github.com/tbd54566975/web5-go/jws"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
 )
@@ -145,15 +144,11 @@ func (o *Offering) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature of the Offering.
 func (o *Offering) Verify() error {
-	_, err := tbdex.VerifySignature(o, o.Signature)
+	decoded, err := tbdex.VerifySignature(o, o.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify Offering signature: %w", err)
 	}
 
-	decoded, err := jws.Decode(o.Signature)
-	if err != nil {
-		return fmt.Errorf("failed to decode Offering signature: %w", err)
-	}
 	if decoded.SignerDID.URI != o.ResourceMetadata.From {
 		return fmt.Errorf("SignerDID: %s does not equal Offering.From: %s", decoded.SignerDID.URI, o.ResourceMetadata.From)
 	}
