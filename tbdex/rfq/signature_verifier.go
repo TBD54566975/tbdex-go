@@ -6,6 +6,5 @@ import (
 )
 
 var VerifySignatureFunc = func(r *RFQ, signature string) (*jws.Decoded, error) {
-	// Implement the default behavior here, perhaps calling tbdex.VerifySignature
 	return tbdex.VerifySignature(r, signature)
 }
