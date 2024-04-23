@@ -18,5 +18,5 @@ schemas:
 
   # Copies test vectors from the tbdex submodule repo into the vectors dir.
 vectors:
-  @git submodule update --init --recursive
+  @git submodule update --remote --merge
   @cp -r spec/hosted/test-vectors/protocol/vectors tbdex/
