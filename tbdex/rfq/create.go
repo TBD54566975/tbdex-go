@@ -15,7 +15,7 @@ import (
 // # An RFQ is a resource created by a customer of the PFI to request a quote
 //
 // [RFQ]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#rfq-request-for-quote
-func Create(from, to, offeringID string, payin PayinMethod, payout PayoutMethod, opts ...CreateOption) (RFQ, error) {
+func Create(to, offeringID string, payin PayinMethod, payout PayoutMethod, opts ...CreateOption) (RFQ, error) {
 	r := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
 		createdAt: time.Now(),
@@ -51,7 +51,7 @@ func Create(from, to, offeringID string, payin PayinMethod, payout PayoutMethod,
 
 	rfq := RFQ{
 		MessageMetadata: tbdex.MessageMetadata{
-			From:       from,
+			// from is set during Sign()
 			To:         to,
 			Kind:       Kind,
 			ID:         r.id,

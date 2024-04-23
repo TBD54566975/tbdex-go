@@ -55,15 +55,14 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature and private data hashes of the RFQ.
 func (r *RFQ) Verify(privateDataStrict bool) error {
-	_, err := tbdex.VerifySignature(r, r.Signature)
+	decoded, err := tbdex.VerifySignature(r, r.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify RFQ signature: %w", err)
 	}
 
-	// TODO add check when decoded.SignerDID is implemented
-	// if decoded.SignerDID != r.MessageMetadata.From {
-	// 	return errors.New("signer: %w does not match message metadata from: %w", decoded.Header.SignerDID, r.MessageMetadata.From)
-	// }
+	if decoded.SignerDID.URI != r.MessageMetadata.From {
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, r.MessageMetadata.From)
+	}
 
 	err = r.verifyPrivateData(privateDataStrict)
 	if err != nil {
@@ -101,7 +100,7 @@ func (r RFQ) Digest() ([]byte, error) {
 }
 
 func (r *RFQ) verifyPrivateData(strict bool) error {
-	if strict == false && r.PrivateData == nil {
+	if !strict && r.PrivateData == nil {
 		return nil
 	}
 
@@ -229,7 +228,7 @@ type ClaimsSet []string
 
 // Scrub extracts claims from the payin method and replaces it with a hash
 func (c ClaimsSet) Scrub(salt string, privateData *PrivateData) (string, error) {
-	if c == nil || len(c) == 0 {
+	if len(c) == 0 {
 		return "", nil
 	}
 

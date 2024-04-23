@@ -144,15 +144,14 @@ func (o *Offering) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature of the Offering.
 func (o *Offering) Verify() error {
-	_, err := tbdex.VerifySignature(o, o.Signature)
+	decoded, err := tbdex.VerifySignature(o, o.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify Offering signature: %w", err)
 	}
 
-	// TODO once implemented in web5-go
-	// if jws.SignerDID != o.From {
-	// 	return errors.New("SignerDID: %w does not equal Offering.From: %w", jws.SignerDID, o.From)
-	// }
+	if decoded.SignerDID.URI != o.ResourceMetadata.From {
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, o.ResourceMetadata.From)
+	}
 
 	return nil
 }
