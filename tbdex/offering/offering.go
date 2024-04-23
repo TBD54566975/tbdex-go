@@ -150,7 +150,7 @@ func (o *Offering) Verify() error {
 	}
 
 	if decoded.SignerDID.URI != o.ResourceMetadata.From {
-		return fmt.Errorf("SignerDID: %s does not equal Offering.From: %s", decoded.SignerDID.URI, o.ResourceMetadata.From)
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, o.ResourceMetadata.From)
 	}
 
 	return nil

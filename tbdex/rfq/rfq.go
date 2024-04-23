@@ -55,7 +55,7 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature and private data hashes of the RFQ.
 func (r *RFQ) Verify(privateDataStrict bool) error {
-	decoded, err := VerifySignatureFunc(r, r.Signature)
+	decoded, err := tbdex.VerifySignature(r, r.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify RFQ signature: %w", err)
 	}
