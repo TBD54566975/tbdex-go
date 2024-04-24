@@ -69,15 +69,14 @@ func (q *Quote) Sign(bearerDID did.BearerDID) error {
 
 // Verify verifies the signature of the quote.
 func (q *Quote) Verify() error {
-	_, err := tbdex.VerifySignature(q, q.Signature)
+	decoded, err := tbdex.VerifySignature(q, q.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify quote signature: %w", err)
 	}
 
-	// TODO add check when decoded.SignerDID is implemented
-	// if decoded.SignerDID != r.MessageMetadata.From {
-	// 	return errors.New("signer: %w does not match message metadata from: %w", decoded.Header.SignerDID, r.MessageMetadata.From)
-	// }
+	if decoded.SignerDID.URI != q.MessageMetadata.From {
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, q.MessageMetadata.From)
+	}
 
 	return nil
 }
