@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
+	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
 )
@@ -56,6 +57,14 @@ func TestRFQVectors(t *testing.T) {
 	vector = readVector("parse-rfq-omit-private-data.json")
 	res = rfq.RFQ{}
 	err = res.Parse([]byte(vector.Input), false)
+
+	assert.NoError(t, err)
+}
+
+func TestQuoteVectors(t *testing.T) {
+	vector := readVector("parse-quote.json")
+	res := quote.Quote{}
+	err := res.Parse([]byte(vector.Input), true)
 
 	assert.NoError(t, err)
 }

@@ -12,7 +12,7 @@ import (
 	"go.jetpack.io/typeid"
 )
 
-func TestCreateRFQ(t *testing.T) {
+func TestCreate(t *testing.T) {
 	pfiDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
@@ -34,7 +34,7 @@ func TestCreateRFQ(t *testing.T) {
 	assert.Zero(t, rfq.Data.ClaimsHash)
 }
 
-func TestCreateRFQ_WithPrivate(t *testing.T) {
+func TestCreate_WithPrivate(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
@@ -56,7 +56,7 @@ func TestCreateRFQ_WithPrivate(t *testing.T) {
 	assert.NotZero(t, rfq.Data.ClaimsHash)
 }
 
-func TestRFQ_Sign(t *testing.T) {
+func TestSign(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -72,7 +72,7 @@ func TestRFQ_Sign(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_UnmarshalJSON(t *testing.T) {
+func TestUnmarshalJSON(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -94,7 +94,7 @@ func TestRFQ_UnmarshalJSON(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Unmarshal_Invalid(t *testing.T) {
+func TestUnmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	var rfq rfq.RFQ
@@ -102,7 +102,7 @@ func TestRFQ_Unmarshal_Invalid(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRFQ_Verify_NoPrivateDataStrict(t *testing.T) {
+func TestVerify_NoPrivateDataStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -127,7 +127,7 @@ func TestRFQ_Verify_NoPrivateDataStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_NoPrivateDataNotStrict(t *testing.T) {
+func TestVerify_NoPrivateDataNotStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -152,7 +152,7 @@ func TestRFQ_Verify_NoPrivateDataNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_FailsClaimsHashMismatch(t *testing.T) {
+func TestVerify_FailsClaimsHashMismatch(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -179,7 +179,7 @@ func TestRFQ_Verify_FailsClaimsHashMismatch(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRFQ_Verify_FailsPayoutHashMismatch(t *testing.T) {
+func TestVerify_FailsPayoutHashMismatch(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -213,7 +213,7 @@ func TestRFQ_Verify_FailsPayoutHashMismatch(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRFQ_Verify_FailsPayinHashMismatch(t *testing.T) {
+func TestVerify_FailsPayinHashMismatch(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -247,7 +247,7 @@ func TestRFQ_Verify_FailsPayinHashMismatch(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRFQ_Verify_ClaimsPrivateDataStrict(t *testing.T) {
+func TestVerify_ClaimsPrivateDataStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -277,7 +277,7 @@ func TestRFQ_Verify_ClaimsPrivateDataStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
+func TestVerify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -304,7 +304,7 @@ func TestRFQ_Verify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRFQ_Verify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
+func TestVerify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -331,7 +331,7 @@ func TestRFQ_Verify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
+func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -361,7 +361,7 @@ func TestRFQ_Verify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestRFQ_Verify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
+func TestVerify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -391,7 +391,7 @@ func TestRFQ_Verify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRFQ_Verify_FailsBadSignature(t *testing.T) {
+func TestVerify_FailsBadSignature(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)

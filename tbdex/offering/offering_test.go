@@ -186,5 +186,5 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 
 	err = o.Verify()
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "does not match message metadata from")
+	assert.Contains(t, err.Error(), "does not match resource metadata from")
 }
