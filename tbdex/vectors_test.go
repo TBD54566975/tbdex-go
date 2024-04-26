@@ -1,8 +1,9 @@
 package tbdex_test
 
 import (
-	"embed"
 	"encoding/json"
+	"log"
+	"os"
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
@@ -11,29 +12,22 @@ import (
 	"github.com/alecthomas/assert/v2"
 )
 
-//go:embed vectors
-var embeddedVectors embed.FS
-
-const (
-	vectorsDir = "vectors/"
-)
-
 type vector struct {
 	Input  string `json:"input"`
 	Output any    `json:"output"`
 }
 
 func readVector(filename string) vector {
-	file, err := embeddedVectors.ReadFile(vectorsDir + filename)
+	file, err := os.ReadFile("../spec/hosted/test-vectors/protocol/vectors/" + filename)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to read %s: %v", filename, err)
 	}
 
 	// Unmarshal JSON data into the struct
 	var v vector
 	err = json.Unmarshal(file, &v)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to unmarshal %s: %v", filename, err)
 	}
 
 	return v
