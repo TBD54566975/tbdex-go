@@ -1,3 +1,7 @@
+# prints available just commands. all you need to do is run `just`
+_help:
+  @just -l
+
 # Run all tests.
 test:
   @echo "Running tests..."
