@@ -106,3 +106,20 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, pfi.URI, o.Metadata.To)
 	assert.Equal(t, exchangeID.String(), o.Metadata.ExchangeID)
 }
+
+func TestSign(t *testing.T) {
+	alice, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	pfi, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	exchangeID := typeid.Must(typeid.WithPrefix(rfq.Kind))
+	o := order.Create(alice.URI, pfi.URI, exchangeID.String())
+
+	err = o.Sign(alice)
+	assert.NoError(t, err)
+
+	err = o.Verify()
+	assert.NoError(t, err)
+}
