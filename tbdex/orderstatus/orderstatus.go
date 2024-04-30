@@ -17,9 +17,9 @@ const Kind = "orderstatus"
 
 // OrderStatus represents an order status message within the exchange.
 type OrderStatus struct {
-	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
-	Data            Data                  `json:"data"`
-	Signature       string                `json:"signature"`
+	MessageMetadata *tbdex.MessageMetadata `json:"metadata,omitempty"`
+	Data            *Data                  `json:"data,omitempty"`
+	Signature       string                 `json:"signature,omitempty"`
 }
 
 // Data encapsulates the data content of an order status.
@@ -112,7 +112,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...C
 	}
 
 	os := OrderStatus{
-		MessageMetadata: tbdex.MessageMetadata{
+		MessageMetadata: &tbdex.MessageMetadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -122,7 +122,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...C
 			ExternalID: o.externalID,
 			Protocol:   o.protocol,
 		},
-		Data: Data{OrderStatus: orderStatus},
+		Data: &Data{OrderStatus: orderStatus},
 	}
 
 	signature, err := tbdex.Sign(os, fromDID)
