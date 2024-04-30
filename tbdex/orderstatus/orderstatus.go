@@ -22,13 +22,14 @@ type OrderStatus struct {
 	Signature       string                `json:"signature"`
 }
 
+// Data encapsulates the data content of an order status.
 type Data struct {
 	OrderStatus string `json:"orderStatus,omitempty"`
 }
 
 // Digest computes a hash of the message
-func (o OrderStatus) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": o.MessageMetadata, "data": o.Data}
+func (os OrderStatus) Digest() ([]byte, error) {
+	payload := map[string]any{"metadata": os.MessageMetadata, "data": os.Data}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to JSON marshal order status: %w", err)
@@ -81,6 +82,7 @@ func (os *OrderStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Parse validates and unmarshals the input data into an OrderStatus.
 func Parse(data []byte) (OrderStatus, error) {
 	os := OrderStatus{}
 	err := os.UnmarshalJSON(data)
@@ -97,6 +99,7 @@ func Parse(data []byte) (OrderStatus, error) {
 	return os, nil
 }
 
+// Create creates a new OrderStatus message.
 func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...CreateOption) (OrderStatus, error) {
 	o := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
@@ -139,6 +142,7 @@ type createOptions struct {
 	externalID string
 }
 
+// CreateOption defines a type for functions that can modify the createOptions struct.
 type CreateOption func(*createOptions)
 
 // ID can be passed to [Create] to provide a custom id.

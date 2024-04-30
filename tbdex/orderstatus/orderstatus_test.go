@@ -66,21 +66,14 @@ func TestVerify(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	message, _ := orderstatus.Create(
+	os, _ := orderstatus.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
 		"processing",
 	)
 
-	bytes, err := json.Marshal(message)
-	assert.NoError(t, err)
-
-	os := orderstatus.OrderStatus{}
-	err = os.UnmarshalJSON(bytes)
-	assert.NoError(t, err)
-
-	err = os.Verify()
+	err := os.Verify()
 	assert.NoError(t, err)
 }
 
@@ -89,23 +82,16 @@ func TestVerify_FailsChangedPayload(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	message, _ := orderstatus.Create(
+	os, _ := orderstatus.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
 		"processing",
 	)
 
-	bytes, err := json.Marshal(message)
-	assert.NoError(t, err)
-
-	os := orderstatus.OrderStatus{}
-	err = os.UnmarshalJSON(bytes)
-	assert.NoError(t, err)
-
 	os.Data.OrderStatus = "failed"
 
-	err = os.Verify()
+	err := os.Verify()
 	assert.Error(t, err)
 }
 
