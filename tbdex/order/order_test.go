@@ -6,7 +6,10 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
+	"github.com/tbd54566975/web5-go/dids/didjwk"
+	"go.jetpack.io/typeid"
 )
 
 func TestUnmarshal(t *testing.T) {
@@ -85,4 +88,21 @@ func TestVerify(t *testing.T) {
 
 	err = o.Verify()
 	assert.NoError(t, err)
+}
+
+func TestCreate(t *testing.T) {
+	alice, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	pfi, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	exchangeID := typeid.Must(typeid.WithPrefix(rfq.Kind))
+	o := order.Create(alice.URI, pfi.URI, exchangeID.String())
+
+	assert.NotZero(t, o)
+	assert.NotZero(t, o.Metadata.ID)
+	assert.Equal(t, alice.URI, o.Metadata.From)
+	assert.Equal(t, pfi.URI, o.Metadata.To)
+	assert.Equal(t, exchangeID.String(), o.Metadata.ExchangeID)
 }
