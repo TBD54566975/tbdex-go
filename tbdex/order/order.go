@@ -80,7 +80,7 @@ func (o *Order) UnmarshalJSON(data []byte) error {
 }
 
 // Parse unmarshals the provided input into an Order and then verifies the signature.
-func Parse(data []byte, privateDataStrict bool) (Order, error) {
+func Parse(data []byte) (Order, error) {
 	var o Order
 	err := json.Unmarshal(data, &o)
 	if err != nil {
