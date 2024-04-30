@@ -122,6 +122,10 @@ func Create(from, to, exchangeID, expiresAt string, payin, payout QuoteDetails, 
 		protocol:  "1.0",
 	}
 
+	for _, opt := range opts {
+		opt(&q)
+	}
+
 	return Quote{
 		MessageMetadata: tbdex.MessageMetadata{
 			From:       from,
