@@ -30,6 +30,7 @@ func TestCreate(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotZero(t, orderstatus.Data.OrderStatus)
+	assert.Equal(t, "processing", orderstatus.Data.OrderStatus)
 	assert.NotZero(t, orderstatus.Signature)
 }
 
