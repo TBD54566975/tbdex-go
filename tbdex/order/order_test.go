@@ -42,6 +42,7 @@ func TestUnmarshal_Invalid(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
+	// generated using tbdex-dart
 	vector := `{"metadata":{"kind":"order","to":"did:jwk:eyJrdHkiOiJPS1AiLCJhbGciOiJFZERTQSIsImtpZCI6IkJmZ1hkZzAydTZETWZ2WVdJRUJDOFBYSGhUR2xMSnJFS05SdjM3N252YWciLCJjcnYiOiJFZDI1NTE5IiwieCI6Ik01NzZTVkFTNVkzY3g2ZlNPMk9EMGtZR3BHN3BLOElqM29pM0NGSzhPMzgifQ","from":"did:jwk:eyJrdHkiOiJPS1AiLCJhbGciOiJFZERTQSIsImtpZCI6InNQT1YzSnZzQldFVzdzTUtXWTBkZmZDTEt3VG1UcENreVFZcmdTOWN0S3MiLCJjcnYiOiJFZDI1NTE5IiwieCI6Inp1MF84NVN0bHRfbnhJQjMxZms4bnBNT2JoVnNkbHowbWhDel9yQzFTMFkifQ","id":"order_01hwr7hh2afa79xfr5ny7f1sg4","exchangeId":"rfq_01hwr7hh26e5s8fmebhrd29n2c","createdAt":"2024-04-30T19:26:12.041866Z","protocol":"1.0"},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmhiR2NpT2lKRlpFUlRRU0lzSW10cFpDSTZJbk5RVDFZelNuWnpRbGRGVnpkelRVdFhXVEJrWm1aRFRFdDNWRzFVY0VOcmVWRlpjbWRUT1dOMFMzTWlMQ0pqY25ZaU9pSkZaREkxTlRFNUlpd2llQ0k2SW5wMU1GODROVk4wYkhSZmJuaEpRak14Wm1zNGJuQk5UMkpvVm5Oa2JIb3diV2hEZWw5eVF6RlRNRmtpZlEjMCJ9..8MK4kzG2IqqMGqyp79j-TT6Jl341YFtvCjl5V-kM46N9sbbfCMgZNSGLaQh5bpN0qr4zsfJxmCOA1GkOIhCgDA"}`
 
 	o, err := order.Parse([]byte(vector))
@@ -72,4 +73,16 @@ func TestVerify_Invalid(t *testing.T) {
 
 	err = o.Verify()
 	assert.Error(t, err)
+}
+
+func TestVerify(t *testing.T) {
+	// generated using tbdex-dart
+	vector := `{"metadata":{"kind":"order","to":"did:jwk:eyJrdHkiOiJPS1AiLCJhbGciOiJFZERTQSIsImtpZCI6IkJmZ1hkZzAydTZETWZ2WVdJRUJDOFBYSGhUR2xMSnJFS05SdjM3N252YWciLCJjcnYiOiJFZDI1NTE5IiwieCI6Ik01NzZTVkFTNVkzY3g2ZlNPMk9EMGtZR3BHN3BLOElqM29pM0NGSzhPMzgifQ","from":"did:jwk:eyJrdHkiOiJPS1AiLCJhbGciOiJFZERTQSIsImtpZCI6InNQT1YzSnZzQldFVzdzTUtXWTBkZmZDTEt3VG1UcENreVFZcmdTOWN0S3MiLCJjcnYiOiJFZDI1NTE5IiwieCI6Inp1MF84NVN0bHRfbnhJQjMxZms4bnBNT2JoVnNkbHowbWhDel9yQzFTMFkifQ","id":"order_01hwr7hh2afa79xfr5ny7f1sg4","exchangeId":"rfq_01hwr7hh26e5s8fmebhrd29n2c","createdAt":"2024-04-30T19:26:12.041866Z","protocol":"1.0"},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmhiR2NpT2lKRlpFUlRRU0lzSW10cFpDSTZJbk5RVDFZelNuWnpRbGRGVnpkelRVdFhXVEJrWm1aRFRFdDNWRzFVY0VOcmVWRlpjbWRUT1dOMFMzTWlMQ0pqY25ZaU9pSkZaREkxTlRFNUlpd2llQ0k2SW5wMU1GODROVk4wYkhSZmJuaEpRak14Wm1zNGJuQk5UMkpvVm5Oa2JIb3diV2hEZWw5eVF6RlRNRmtpZlEjMCJ9..8MK4kzG2IqqMGqyp79j-TT6Jl341YFtvCjl5V-kM46N9sbbfCMgZNSGLaQh5bpN0qr4zsfJxmCOA1GkOIhCgDA"}`
+
+	var o order.Order
+	err := json.Unmarshal([]byte(vector), &o)
+	assert.NoError(t, err)
+
+	err = o.Verify()
+	assert.NoError(t, err)
 }
