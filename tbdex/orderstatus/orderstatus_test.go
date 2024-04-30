@@ -6,7 +6,7 @@ import (
 
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
-	"github.com/alecthomas/assert"
+	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
 	"go.jetpack.io/typeid"
