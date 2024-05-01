@@ -28,6 +28,16 @@ func TestUnmarshal(t *testing.T) {
 	assert.Zero(t, o.Data)
 }
 
+func TestUnmarshal_Empty(t *testing.T) {
+	vector := `{"metadata":{},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmhiR2NpT2lKRlpFUlRRU0lzSW10cFpDSTZJa1pxTW04MExVcG1PRmhDZUZKbVNUZFpRbFJ1WkdWR1EzUTBWM2xST0VkWVUwNWxNalZxUmpaT1VVa2lMQ0pqY25ZaU9pSkZaREkxTlRFNUlpd2llQ0k2SWtoSGRrRkhUSGxqVmpZelNWOU9ORXBRWDJKcWF6Um1OVlJyVTE5cWVHSkhRMUEyUlV0SFNHbHFNR3NpZlEjMCJ9..Uiu_nsMRcD5F2WA7gcahX61M20lEEttUpMFSCQZNuXR42RK2z_qqjYjk85EZ1M_ILywe2DtubfZZwwFuQbcAAg"}`
+
+	var o order.Order
+	_ = json.Unmarshal([]byte(vector), &o)
+
+	assert.Zero(t, o.Metadata)
+	assert.Zero(t, o.Data)
+}
+
 func TestUnmarshal_Invalid(t *testing.T) {
 	vectors := []string{
 		"hi",

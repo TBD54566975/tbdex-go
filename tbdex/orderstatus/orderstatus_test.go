@@ -54,7 +54,7 @@ func TestUnmarshalJSON(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUnmarshal_Invalid(t *testing.T) {
+func TestUnmarshalJSON_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	os := orderstatus.OrderStatus{}
