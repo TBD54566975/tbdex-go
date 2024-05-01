@@ -40,7 +40,7 @@ func (b Balance) Digest() ([]byte, error) {
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to digest offering: %w", err)
+		return nil, fmt.Errorf("failed to digest balance: %w", err)
 	}
 
 	return hashed, nil
@@ -76,7 +76,7 @@ func Create(fromDID did.BearerDID, currencyCode, availableAmount string, opts ..
 
 	signature, err := tbdex.Sign(b, fromDID)
 	if err != nil {
-		return Balance{}, fmt.Errorf("failed to sign offering: %w", err)
+		return Balance{}, fmt.Errorf("failed to sign balance: %w", err)
 	}
 
 	b.Signature = signature
