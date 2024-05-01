@@ -16,7 +16,7 @@ import (
 // An Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 //
 // [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#offering
-func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
+func Create(payin *PayinDetails, payout *PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
 	o := createOptions{
 		id:          typeid.Must(typeid.New[ID]()),
 		createdAt:   time.Now(),
@@ -38,14 +38,14 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 	}
 
 	return Offering{
-		ResourceMetadata: tbdex.ResourceMetadata{
+		ResourceMetadata: &tbdex.ResourceMetadata{
 			Kind:      Kind,
 			ID:        o.id.String(),
 			CreatedAt: o.createdAt.UTC().Format(time.RFC3339),
 			UpdatedAt: o.updatedAt.UTC().Format(time.RFC3339),
 			Protocol:  o.protocol,
 		},
-		Data: Data{
+		Data: &Data{
 			Payin:          payin,
 			Payout:         payout,
 			Rate:           rate,
@@ -56,8 +56,8 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 }
 
 // NewPayin creates PayinDetails
-func NewPayin(currencyCode string, methods []PayinMethod, opts ...PaymentOption) PayinDetails {
-	return PayinDetails{
+func NewPayin(currencyCode string, methods []PayinMethod, opts ...PaymentOption) *PayinDetails {
+	return &PayinDetails{
 		CurrencyCode: currencyCode,
 		Methods:      methods,
 	}
@@ -82,13 +82,13 @@ func NewPayinMethod(kind string, opts ...PaymentMethodOption) PayinMethod {
 }
 
 // NewPayout creates PayoutDetails
-func NewPayout(currencyCode string, methods []PayoutMethod, opts ...PaymentOption) PayoutDetails {
+func NewPayout(currencyCode string, methods []PayoutMethod, opts ...PaymentOption) *PayoutDetails {
 	o := paymentOptions{}
 	for _, opt := range opts {
 		opt(&o)
 	}
 
-	return PayoutDetails{
+	return &PayoutDetails{
 		CurrencyCode: currencyCode,
 		Min:          o.Min,
 		Max:          o.Max,
