@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/balance"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
@@ -40,6 +41,13 @@ func TestOfferingVectors(t *testing.T) {
 	vector := readVector("parse-offering.json")
 	res := offering.Offering{}
 	err := res.Parse([]byte(vector.Input))
+
+	assert.NoError(t, err)
+}
+
+func TestBalanceVectors(t *testing.T) {
+	vector := readVector("parse-balance.json")
+	_, err := balance.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
