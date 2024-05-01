@@ -1,13 +1,11 @@
 package orderstatus
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
-	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -30,24 +28,13 @@ type Data struct {
 // Digest computes a hash of the message
 func (os OrderStatus) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": os.MessageMetadata, "data": os.Data}
-	payloadBytes, err := json.Marshal(payload)
+
+	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to JSON marshal order status: %w", err)
+		return nil, fmt.Errorf("failed to digest order status: %w", err)
 	}
 
-	canonicalized, err := jcs.Transform(payloadBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to canonicalize order status: %w", err)
-	}
-
-	hasher := sha256.New()
-	_, err = hasher.Write(canonicalized)
-	if err != nil {
-		return nil, fmt.Errorf("failed to compute digest: %w", err)
-
-	}
-
-	return hasher.Sum(nil), nil
+	return hashed, nil
 }
 
 // Verify verifies the signature of the OrderStatus.

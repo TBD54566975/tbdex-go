@@ -1,12 +1,10 @@
 package offering
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
-	"github.com/gowebpki/jcs"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
@@ -90,24 +88,13 @@ func (id ID) Prefix() string { return Kind }
 //   - the digest of the data.
 func (o Offering) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": o.ResourceMetadata, "data": o.Data}
-	payloadBytes, err := json.Marshal(payload)
+
+	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to JSON marshal offering: %w", err)
+		return nil, fmt.Errorf("failed to digest offering: %w", err)
 	}
 
-	canonicalized, err := jcs.Transform(payloadBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to canonicalize offering: %w", err)
-	}
-
-	hasher := sha256.New()
-	_, err = hasher.Write(canonicalized)
-	if err != nil {
-		return nil, fmt.Errorf("failed to compute digest: %w", err)
-
-	}
-
-	return hasher.Sum(nil), nil
+	return hashed, nil
 }
 
 // Sign cryptographically signs the Resource using DID's private key
