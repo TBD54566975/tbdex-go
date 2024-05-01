@@ -59,7 +59,7 @@ func (q *Quote) Sign(bearerDID did.BearerDID) error {
 
 	signature, err := tbdex.Sign(q, bearerDID)
 	if err != nil {
-		return fmt.Errorf("failed to sign rfq: %w", err)
+		return fmt.Errorf("failed to sign quote: %w", err)
 	}
 
 	q.Signature = signature
@@ -99,7 +99,7 @@ func (q *Quote) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Parse validates, parses input data into an RFQ, and verifies the signature and private data.
+// Parse validates, parses input data into an Quote, and verifies the signature and private data.
 func (q *Quote) Parse(data []byte, privateDataStrict bool) error {
 	err := q.UnmarshalJSON(data)
 	if err != nil {
