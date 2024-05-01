@@ -8,6 +8,7 @@ import (
 
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
@@ -69,4 +70,11 @@ func TestOrderVectors(t *testing.T) {
 	_, err := order.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
+}
+
+func TestOrderStatusVectors(t *testing.T) {
+	vector := readVector("parse-orderstatus.json")
+	_, err := orderstatus.Parse([]byte(vector.Input))
+  
+  assert.NoError(t, err)
 }
