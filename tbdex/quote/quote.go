@@ -85,8 +85,8 @@ func (q *Quote) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Parse validates, parses input data into an Quote, and verifies the signature and private data.
-func Parse(data []byte, privateDataStrict bool) (Quote, error) {
+// Parse validates, parses input data into an Quote, and verifies the signature.
+func Parse(data []byte) (Quote, error) {
 	q := Quote{}
 	if err := json.Unmarshal(data, &q); err != nil {
 		return Quote{}, fmt.Errorf("failed to unmarshal Quote: %w", err)

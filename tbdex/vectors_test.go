@@ -66,7 +66,7 @@ func TestRFQVectors(t *testing.T) {
 
 func TestQuoteVectors(t *testing.T) {
 	vector := readVector("parse-quote.json")
-	_, err := quote.Parse([]byte(vector.Input), true)
+	_, err := quote.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
