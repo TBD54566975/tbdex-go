@@ -12,7 +12,11 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	_, err := offering.Create(
+	pfiDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	_, err = offering.Create(
+		pfiDID,
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
@@ -32,6 +36,7 @@ func TestSign(t *testing.T) {
 	assert.NoError(t, err)
 
 	offering, err := offering.Create(
+		bearerDID,
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
@@ -42,12 +47,8 @@ func TestSign(t *testing.T) {
 		),
 		"1.0",
 	)
-
 	assert.NoError(t, err)
-	assert.NoError(t, err)
-
-	err = offering.Sign(bearerDID)
-	assert.NoError(t, err)
+	assert.NotZero(t, offering.Signature)
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -55,6 +56,7 @@ func TestUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	o, err := offering.Create(
+		bearerDID,
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
@@ -84,9 +86,6 @@ func TestUnmarshal(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	err = o.Sign(bearerDID)
-	assert.NoError(t, err)
-
 	bytes, err := json.Marshal(o)
 	assert.NoError(t, err)
 
@@ -108,6 +107,7 @@ func TestVerify(t *testing.T) {
 	assert.NoError(t, err)
 
 	o, err := offering.Create(
+		bearerDID,
 		offering.NewPayin(
 			"BTC",
 			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
@@ -119,9 +119,6 @@ func TestVerify(t *testing.T) {
 		"60000.00",
 	)
 
-	assert.NoError(t, err)
-
-	err = o.Sign(bearerDID)
 	assert.NoError(t, err)
 
 	err = o.Verify()
@@ -133,6 +130,7 @@ func TestVerify_InvalidSignature(t *testing.T) {
 	assert.NoError(t, err)
 
 	o, err := offering.Create(
+		bearerDID,
 		offering.NewPayin(
 			"BTC",
 			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
@@ -144,9 +142,6 @@ func TestVerify_InvalidSignature(t *testing.T) {
 		"60000.00",
 	)
 
-	assert.NoError(t, err)
-
-	err = o.Sign(bearerDID)
 	assert.NoError(t, err)
 
 	o.Signature = "invalid"
@@ -160,6 +155,7 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	wrongDID, _ := didjwk.Create()
 
 	o, err := offering.Create(
+		bearerDID,
 		offering.NewPayin(
 			"BTC",
 			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
@@ -171,9 +167,6 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 		"60000.00",
 	)
 
-	assert.NoError(t, err)
-
-	err = o.Sign(bearerDID)
 	assert.NoError(t, err)
 
 	toSign, err := o.Digest()

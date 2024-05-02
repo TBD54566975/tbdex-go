@@ -7,6 +7,7 @@ import (
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/tbd54566975/web5-go/crypto"
+	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
 
@@ -15,7 +16,7 @@ import (
 // # An RFQ is a resource created by a customer of the PFI to request a quote
 //
 // [RFQ]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#rfq-request-for-quote
-func Create(to, offeringID string, payin PayinMethod, payout PayoutMethod, opts ...CreateOption) (RFQ, error) {
+func Create(fromDID did.BearerDID, to, offeringID string, payin PayinMethod, payout PayoutMethod, opts ...CreateOption) (RFQ, error) {
 	r := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
 		createdAt: time.Now(),
@@ -51,7 +52,7 @@ func Create(to, offeringID string, payin PayinMethod, payout PayoutMethod, opts 
 
 	rfq := RFQ{
 		MessageMetadata: tbdex.MessageMetadata{
-			// from is set during Sign()
+			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
 			ID:         r.id,
@@ -72,6 +73,13 @@ func Create(to, offeringID string, payin PayinMethod, payout PayoutMethod, opts 
 		privateData.Salt = salt
 		rfq.PrivateData = &privateData
 	}
+
+	signature, err := tbdex.Sign(rfq, fromDID)
+	if err != nil {
+		return RFQ{}, fmt.Errorf("failed to sign rfq: %w", err)
+	}
+
+	rfq.Signature = signature
 
 	return rfq, nil
 }

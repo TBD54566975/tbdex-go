@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
-	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
 )
@@ -95,20 +94,6 @@ func (o Offering) Digest() ([]byte, error) {
 	}
 
 	return hashed, nil
-}
-
-// Sign cryptographically signs the Resource using DID's private key
-func (o *Offering) Sign(bearerDID did.BearerDID) error {
-	o.From = bearerDID.URI
-
-	signature, err := tbdex.Sign(o, bearerDID)
-	if err != nil {
-		return fmt.Errorf("failed to sign offering: %w", err)
-	}
-
-	o.Signature = signature
-
-	return nil
 }
 
 // UnmarshalJSON validates and unmarshals the input data into an Offering.
