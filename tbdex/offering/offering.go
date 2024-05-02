@@ -130,7 +130,7 @@ func (o *Offering) Verify() error {
 
 // Parse validates, parses input data into an Offering, and verifies the signature.
 func (o *Offering) Parse(data []byte) error {
-	if err := o.UnmarshalJSON(data); err != nil {
+	if err := json.Unmarshal(data, &o); err != nil {
 		return fmt.Errorf("failed to unmarshal Offering: %w", err)
 	}
 

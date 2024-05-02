@@ -86,18 +86,17 @@ func (q *Quote) UnmarshalJSON(data []byte) error {
 }
 
 // Parse validates, parses input data into an Quote, and verifies the signature and private data.
-func (q *Quote) Parse(data []byte, privateDataStrict bool) error {
-	err := q.UnmarshalJSON(data)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal Quote: %w", err)
+func Parse(data []byte, privateDataStrict bool) (Quote, error) {
+	q := Quote{}
+	if err := json.Unmarshal(data, &q); err != nil {
+		return Quote{}, fmt.Errorf("failed to unmarshal Quote: %w", err)
 	}
 
-	err = q.Verify()
-	if err != nil {
-		return fmt.Errorf("failed to verify Quote: %w", err)
+	if err := q.Verify(); err != nil {
+		return Quote{}, fmt.Errorf("failed to verify Quote: %w", err)
 	}
 
-	return nil
+	return q, nil
 }
 
 // Create generates a new Quote with the specified parameters and options.

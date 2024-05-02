@@ -72,19 +72,16 @@ func (c *Close) UnmarshalJSON(data []byte) error {
 
 // Parse validates and unmarshals the input data into a Close.
 func Parse(data []byte) (Close, error) {
-	os := Close{}
-	err := os.UnmarshalJSON(data)
-	if err != nil {
-		return Close{}, err
-
+	c := Close{}
+	if err := json.Unmarshal(data, &c); err != nil {
+		return Close{}, fmt.Errorf("failed to unmarshal Close: %w", err)
 	}
 
-	err = os.Verify()
-	if err != nil {
-		return Close{}, fmt.Errorf("failed to verify close: %w", err)
+	if err := c.Verify(); err != nil {
+		return Close{}, fmt.Errorf("failed to verify Close: %w", err)
 	}
 
-	return os, nil
+	return c, nil
 }
 
 // Create creates a new Close message.

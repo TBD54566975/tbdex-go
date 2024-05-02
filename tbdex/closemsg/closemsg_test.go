@@ -36,7 +36,7 @@ func TestCreate(t *testing.T) {
 	assert.NotZero(t, c.Signature)
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)

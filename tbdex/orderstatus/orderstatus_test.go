@@ -34,7 +34,7 @@ func TestCreate(t *testing.T) {
 	assert.NotZero(t, orderstatus.Signature)
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
@@ -65,7 +65,7 @@ func TestUnmarshal_Empty(t *testing.T) {
 	assert.Zero(t, os.Data)
 }
 
-func TestUnmarshalJSON_Invalid(t *testing.T) {
+func TestUnmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	os := orderstatus.OrderStatus{}

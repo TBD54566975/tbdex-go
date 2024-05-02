@@ -54,22 +54,19 @@ func TestBalanceVectors(t *testing.T) {
 
 func TestRFQVectors(t *testing.T) {
 	vector := readVector("parse-rfq.json")
-	res := rfq.RFQ{}
-	err := res.Parse([]byte(vector.Input), true)
+	_, err := rfq.Parse([]byte(vector.Input), true)
 
 	assert.NoError(t, err)
 
 	vector = readVector("parse-rfq-omit-private-data.json")
-	res = rfq.RFQ{}
-	err = res.Parse([]byte(vector.Input), false)
+	_, err = rfq.Parse([]byte(vector.Input), false)
 
 	assert.NoError(t, err)
 }
 
 func TestQuoteVectors(t *testing.T) {
 	vector := readVector("parse-quote.json")
-	res := quote.Quote{}
-	err := res.Parse([]byte(vector.Input), true)
+	_, err := quote.Parse([]byte(vector.Input), true)
 
 	assert.NoError(t, err)
 }

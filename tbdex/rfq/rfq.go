@@ -58,18 +58,17 @@ func (r *RFQ) Verify(privateDataStrict bool) error {
 }
 
 // Parse validates, parses input data into an RFQ, and verifies the signature and private data.
-func (r *RFQ) Parse(data []byte, privateDataStrict bool) error {
-	err := r.UnmarshalJSON(data)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal RFQ: %w", err)
+func Parse(data []byte, privateDataStrict bool) (RFQ, error) {
+	r := RFQ{}
+	if err := json.Unmarshal(data, &r); err != nil {
+		return RFQ{}, fmt.Errorf("failed to unmarshal RFQ: %w", err)
 	}
 
-	err = r.Verify(privateDataStrict)
-	if err != nil {
-		return fmt.Errorf("failed to verify RFQ: %w", err)
+	if err := r.Verify(privateDataStrict); err != nil {
+		return RFQ{}, fmt.Errorf("failed to verify RFQ: %w", err)
 	}
 
-	return nil
+	return r, nil
 }
 
 // Digest computes a hash of the rfq

@@ -77,7 +77,7 @@ func TestSign(t *testing.T) {
 	assert.NotZero(t, r.Signature)
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -133,7 +133,7 @@ func TestVerify_NoPrivateDataStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -157,7 +157,7 @@ func TestVerify_NoPrivateDataNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -184,7 +184,7 @@ func TestVerify_FailsClaimsHashMismatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -218,7 +218,7 @@ func TestVerify_FailsPayoutHashMismatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -252,7 +252,7 @@ func TestVerify_FailsPayinHashMismatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -281,7 +281,7 @@ func TestVerify_ClaimsPrivateDataStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -308,7 +308,7 @@ func TestVerify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -335,7 +335,7 @@ func TestVerify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -365,7 +365,7 @@ func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -395,7 +395,7 @@ func TestVerify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -426,7 +426,7 @@ func TestVerify_FailsBadSignature(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -452,7 +452,7 @@ func TestVerify_InvalidSignature(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -485,7 +485,7 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	assert.NoError(t, err)
 
 	var RFQ rfq.RFQ
-	err = RFQ.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &RFQ)
 	assert.NoError(t, err)
 
 	err = RFQ.Verify(true)

@@ -143,7 +143,7 @@ func (b *Balance) Verify() error {
 // Parse validates, parses input data into a Balance, and verifies the signature.
 func Parse(data []byte) (Balance, error) {
 	balance := Balance{}
-	if err := balance.UnmarshalJSON(data); err != nil {
+	if err := json.Unmarshal(data, &balance); err != nil {
 		return Balance{}, fmt.Errorf("failed to unmarshal Balance: %w", err)
 	}
 

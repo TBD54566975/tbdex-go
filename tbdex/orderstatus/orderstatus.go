@@ -72,14 +72,12 @@ func (os *OrderStatus) UnmarshalJSON(data []byte) error {
 // Parse validates and unmarshals the input data into an OrderStatus.
 func Parse(data []byte) (OrderStatus, error) {
 	os := OrderStatus{}
-	err := os.UnmarshalJSON(data)
-	if err != nil {
-		return OrderStatus{}, err
+	if err := json.Unmarshal(data, &os); err != nil {
+		return OrderStatus{}, fmt.Errorf("failed to unmarshal order status: %w", err)
 
 	}
 
-	err = os.Verify()
-	if err != nil {
+	if err := os.Verify(); err != nil {
 		return OrderStatus{}, fmt.Errorf("failed to verify order status: %w", err)
 	}
 
