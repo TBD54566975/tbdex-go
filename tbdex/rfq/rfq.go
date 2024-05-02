@@ -7,7 +7,6 @@ import (
 	"reflect"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
-	"github.com/tbd54566975/web5-go/dids/did"
 )
 
 // Kind identifies this message kind
@@ -19,20 +18,6 @@ type RFQ struct {
 	Data            Data                  `json:"data"`
 	PrivateData     *PrivateData          `json:"privateData,omitempty"`
 	Signature       string                `json:"signature"`
-}
-
-// Sign cryptographically signs the RFQ using DID's private key
-func (r *RFQ) Sign(bearerDID did.BearerDID) error {
-	r.MessageMetadata.From = bearerDID.URI
-
-	signature, err := tbdex.Sign(r, bearerDID)
-	if err != nil {
-		return fmt.Errorf("failed to sign rfq: %w", err)
-	}
-
-	r.Signature = signature
-
-	return nil
 }
 
 // UnmarshalJSON validates and unmarshals the input data into an RFQ.

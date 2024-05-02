@@ -1,16 +1,14 @@
-package quote_test
+package closemsg_test
 
 import (
 	"encoding/json"
 	"testing"
-	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex/quote"
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
-
 	"go.jetpack.io/typeid"
 )
 
@@ -23,21 +21,19 @@ func TestCreate(t *testing.T) {
 
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	quote, err := quote.Create(
+	c, err := closemsg.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10", quote.DetailsFee("0.1")),
-		quote.NewQuoteDetails("MXN", "500"),
+		closemsg.Reason("card declined"),
+		closemsg.Success(false),
 	)
-	assert.NoError(t, err)
 
 	assert.NoError(t, err)
-	assert.NotZero(t, quote.Data.ExpiresAt)
-	assert.NotZero(t, quote.Data.Payin)
-	assert.NotZero(t, quote.Data.Payout)
-	assert.NotZero(t, quote.Signature)
+	assert.NotZero(t, c.Data.Reason)
+	assert.Equal(t, "card declined", c.Data.Reason)
+	assert.False(t, c.Data.Success)
+	assert.NotZero(t, c.Signature)
 }
 
 func TestUnmarshalJSON(t *testing.T) {
@@ -45,34 +41,26 @@ func TestUnmarshalJSON(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	q, err := quote.Create(
+	message, _ := closemsg.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails(
-			"MXN",
-			"500",
-			quote.DetailsFee("0.1"),
-			quote.DetailsInstruction(quote.NewPaymentInstruction(quote.Instruction("use link"))),
-		),
+		closemsg.Reason("test"),
 	)
+
+	bytes, err := json.Marshal(message)
 	assert.NoError(t, err)
 
-	bytes, err := json.Marshal(q)
-	assert.NoError(t, err)
-
-	quote := quote.Quote{}
-	err = quote.UnmarshalJSON(bytes)
+	c := closemsg.Close{}
+	err = c.UnmarshalJSON(bytes)
 	assert.NoError(t, err)
 }
 
 func TestUnmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
-	quote := quote.Quote{}
-	err := quote.UnmarshalJSON(input)
+	c := closemsg.Close{}
+	err := c.UnmarshalJSON(input)
 	assert.Error(t, err)
 }
 
@@ -81,17 +69,13 @@ func TestVerify(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	quote, err := quote.Create(
+	c, _ := closemsg.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
 	)
-	assert.NoError(t, err)
 
-	err = quote.Verify()
+	err := c.Verify()
 	assert.NoError(t, err)
 }
 
@@ -100,19 +84,16 @@ func TestVerify_FailsChangedPayload(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	quote, err := quote.Create(
+	c, _ := closemsg.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		closemsg.Reason("test"),
 	)
-	assert.NoError(t, err)
 
-	quote.Data.ExpiresAt = "badtimestamp"
+	c.Data.Reason = "new reason"
 
-	err = quote.Verify()
+	err := c.Verify()
 	assert.Error(t, err)
 }
 
@@ -121,19 +102,16 @@ func TestVerify_InvalidSignature(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	quote, err := quote.Create(
+	c, _ := closemsg.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		closemsg.Reason("test"),
 	)
-	assert.NoError(t, err)
 
-	quote.Signature = "Invalid"
+	c.Signature = "Invalid"
 
-	err = quote.Verify()
+	err := c.Verify()
 	assert.Error(t, err)
 }
 
@@ -143,25 +121,21 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	wrongDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
 
-	quote, err := quote.Create(
+	c, _ := closemsg.Create(
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		closemsg.Reason("test"),
 	)
-	assert.NoError(t, err)
 
-	toSign, err := quote.Digest()
+	toSign, err := c.Digest()
 	assert.NoError(t, err)
 
 	wrongSignature, err := jws.Sign(toSign, wrongDID, jws.DetachedPayload(true))
 	assert.NoError(t, err)
 
-	quote.Signature = wrongSignature
+	c.Signature = wrongSignature
 
-	err = quote.Verify()
+	err = c.Verify()
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "does not match message metadata from")
 }

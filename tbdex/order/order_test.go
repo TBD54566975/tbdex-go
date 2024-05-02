@@ -98,7 +98,8 @@ func TestCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	exchangeID := typeid.Must(typeid.WithPrefix(rfq.Kind))
-	o := order.Create(alice.URI, pfi.URI, exchangeID.String())
+	o, err := order.Create(alice, pfi.URI, exchangeID.String())
+	assert.NoError(t, err)
 
 	assert.NotZero(t, o)
 	assert.NotZero(t, o.Metadata.ID)
@@ -110,14 +111,11 @@ func TestCreate(t *testing.T) {
 func TestSign(t *testing.T) {
 	alice, err := didjwk.Create()
 	assert.NoError(t, err)
-
 	pfi, err := didjwk.Create()
 	assert.NoError(t, err)
 
 	exchangeID := typeid.Must(typeid.WithPrefix(rfq.Kind))
-	o := order.Create(alice.URI, pfi.URI, exchangeID.String())
-
-	err = o.Sign(alice)
+	o, err := order.Create(alice, pfi.URI, exchangeID.String())
 	assert.NoError(t, err)
 
 	err = o.Verify()

@@ -53,20 +53,6 @@ func (q Quote) Digest() ([]byte, error) {
 	return hashed, nil
 }
 
-// Sign cryptographically signs the quote using DID's private key
-func (q *Quote) Sign(bearerDID did.BearerDID) error {
-	q.MessageMetadata.From = bearerDID.URI
-
-	signature, err := tbdex.Sign(q, bearerDID)
-	if err != nil {
-		return fmt.Errorf("failed to sign quote: %w", err)
-	}
-
-	q.Signature = signature
-
-	return nil
-}
-
 // Verify verifies the signature of the quote.
 func (q *Quote) Verify() error {
 	decoded, err := tbdex.VerifySignature(q, q.Signature)
@@ -115,7 +101,7 @@ func (q *Quote) Parse(data []byte, privateDataStrict bool) error {
 }
 
 // Create generates a new Quote with the specified parameters and options.
-func Create(from, to, exchangeID, expiresAt string, payin, payout QuoteDetails, opts ...CreateOption) Quote {
+func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payout QuoteDetails, opts ...CreateOption) (Quote, error) {
 	q := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
 		createdAt: time.Now(),
@@ -126,9 +112,9 @@ func Create(from, to, exchangeID, expiresAt string, payin, payout QuoteDetails, 
 		opt(&q)
 	}
 
-	return Quote{
+	quote := Quote{
 		MessageMetadata: tbdex.MessageMetadata{
-			From:       from,
+			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
 			ID:         q.id,
@@ -139,6 +125,15 @@ func Create(from, to, exchangeID, expiresAt string, payin, payout QuoteDetails, 
 		},
 		Data: Data{ExpiresAt: expiresAt, Payin: payin, Payout: payout},
 	}
+
+	signature, err := tbdex.Sign(quote, fromDID)
+	if err != nil {
+		return Quote{}, fmt.Errorf("failed to sign quote: %w", err)
+	}
+
+	quote.Signature = signature
+
+	return quote, nil
 }
 
 type createOptions struct {
@@ -154,29 +149,29 @@ type CreateOption func(*createOptions)
 
 // ID can be passed to [Create] to provide a custom id.
 func ID(id string) CreateOption {
-	return func(r *createOptions) {
-		r.id = id
+	return func(o *createOptions) {
+		o.id = id
 	}
 }
 
 // CreatedAt can be passed to [Create] to provide a custom created at time.
 func CreatedAt(t time.Time) CreateOption {
-	return func(q *createOptions) {
-		q.createdAt = t
+	return func(o *createOptions) {
+		o.createdAt = t
 	}
 }
 
 // ExternalID can be passed to [Create] to provide a custom external id.
 func ExternalID(externalID string) CreateOption {
-	return func(q *createOptions) {
-		q.externalID = externalID
+	return func(o *createOptions) {
+		o.externalID = externalID
 	}
 }
 
 // ExchangeID can be passed to [Create] to provide a custom exchange id.
 func ExchangeID(exchangeID string) CreateOption {
-	return func(q *createOptions) {
-		q.exchangeID = exchangeID
+	return func(o *createOptions) {
+		o.exchangeID = exchangeID
 	}
 }
 

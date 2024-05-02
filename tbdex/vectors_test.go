@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/balance"
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
@@ -83,6 +84,13 @@ func TestOrderVectors(t *testing.T) {
 func TestOrderStatusVectors(t *testing.T) {
 	vector := readVector("parse-orderstatus.json")
 	_, err := orderstatus.Parse([]byte(vector.Input))
+
+	assert.NoError(t, err)
+}
+
+func TestCloseVectors(t *testing.T) {
+	vector := readVector("parse-close.json")
+	_, err := closemsg.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }

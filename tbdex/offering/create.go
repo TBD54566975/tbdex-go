@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
 )
@@ -16,7 +17,7 @@ import (
 // An Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 //
 // [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#offering
-func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
+func Create(fromDID did.BearerDID, payin PayinDetails, payout PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
 	o := createOptions{
 		id:          typeid.Must(typeid.New[ID]()),
 		createdAt:   time.Now(),
@@ -37,8 +38,9 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 		return Offering{}, errors.New("at least 1 payout method is required")
 	}
 
-	return Offering{
+	offering := Offering{
 		ResourceMetadata: tbdex.ResourceMetadata{
+			From:      fromDID.URI,
 			Kind:      Kind,
 			ID:        o.id.String(),
 			CreatedAt: o.createdAt.UTC().Format(time.RFC3339),
@@ -52,7 +54,16 @@ func Create(payin PayinDetails, payout PayoutDetails, rate string, opts ...Creat
 			Description:    o.description,
 			RequiredClaims: o.requiredClaims,
 		},
-	}, nil
+	}
+
+	signature, err := tbdex.Sign(offering, fromDID)
+	if err != nil {
+		return Offering{}, fmt.Errorf("failed to sign offering: %w", err)
+	}
+
+	offering.Signature = signature
+
+	return offering, nil
 }
 
 // NewPayin creates PayinDetails

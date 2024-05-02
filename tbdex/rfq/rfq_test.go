@@ -14,12 +14,14 @@ import (
 
 func TestCreate(t *testing.T) {
 	pfiDID, err := didjwk.Create()
+	walletDID, _ := didjwk.Create()
 	assert.NoError(t, err)
 
 	offeringID, err := typeid.WithPrefix(offering.Kind)
 	assert.NoError(t, err)
 
 	rfq, err := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -36,9 +38,11 @@ func TestCreate(t *testing.T) {
 
 func TestCreate_WithPrivate(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	rfq, err := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -61,15 +65,16 @@ func TestSign(t *testing.T) {
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
-	r, _ := rfq.Create(
+	r, err := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
 		rfq.Payout("BANK_ACCOUNT"),
 	)
 
-	err := r.Sign(walletDID)
 	assert.NoError(t, err)
+	assert.NotZero(t, r.Signature)
 }
 
 func TestUnmarshalJSON(t *testing.T) {
@@ -78,13 +83,12 @@ func TestUnmarshalJSON(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
 		rfq.Payout("BANK_ACCOUNT"),
 	)
-
-	_ = r.Sign(walletDID)
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
@@ -108,13 +112,12 @@ func TestVerify_NoPrivateDataStrict(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
 		rfq.Payout("BANK_ACCOUNT"),
 	)
-
-	_ = r.Sign(walletDID)
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
@@ -133,13 +136,12 @@ func TestVerify_NoPrivateDataNotStrict(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
 		rfq.Payout("BANK_ACCOUNT"),
 	)
-
-	_ = r.Sign(walletDID)
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
@@ -158,6 +160,7 @@ func TestVerify_FailsClaimsHashMismatch(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -165,7 +168,6 @@ func TestVerify_FailsClaimsHashMismatch(t *testing.T) {
 		rfq.Claims([]string{"my_jwt"}),
 	)
 
-	_ = r.Sign(walletDID)
 	r.PrivateData.Claims = []string{"different_jwt"}
 
 	bytes, err := json.Marshal(r)
@@ -185,6 +187,7 @@ func TestVerify_FailsPayoutHashMismatch(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -196,7 +199,6 @@ func TestVerify_FailsPayoutHashMismatch(t *testing.T) {
 		rfq.Claims([]string{"my_jwt"}),
 	)
 
-	_ = r.Sign(walletDID)
 	r.PrivateData.Payout.PaymentDetails = map[string]any{
 		"accountNumber": "1234567890123456",
 		"routingNumber": "new_routing_number",
@@ -219,6 +221,7 @@ func TestVerify_FailsPayinHashMismatch(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "BANK_ACCOUNT", rfq.PaymentDetails(
@@ -230,7 +233,6 @@ func TestVerify_FailsPayinHashMismatch(t *testing.T) {
 		rfq.Claims([]string{"my_jwt"}),
 	)
 
-	_ = r.Sign(walletDID)
 	r.PrivateData.Payin.PaymentDetails = map[string]any{
 		"accountNumber": "1234567890123456",
 		"routingNumber": "new_routing_number",
@@ -253,6 +255,7 @@ func TestVerify_ClaimsPrivateDataStrict(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -263,8 +266,6 @@ func TestVerify_ClaimsPrivateDataStrict(t *testing.T) {
 			})),
 		rfq.Claims([]string{"my_jwt"}),
 	)
-
-	_ = r.Sign(walletDID)
 
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
@@ -283,6 +284,7 @@ func TestVerify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -290,7 +292,6 @@ func TestVerify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 		rfq.Claims([]string{"my_jwt"}),
 	)
 
-	_ = r.Sign(walletDID)
 	r.PrivateData.Claims = nil
 
 	bytes, err := json.Marshal(r)
@@ -310,6 +311,7 @@ func TestVerify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -317,7 +319,6 @@ func TestVerify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 		rfq.Claims([]string{"my_jwt"}),
 	)
 
-	_ = r.Sign(walletDID)
 	r.PrivateData.Claims = nil
 
 	bytes, err := json.Marshal(r)
@@ -337,6 +338,7 @@ func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -347,7 +349,6 @@ func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 			})),
 	)
 
-	_ = r.Sign(walletDID)
 	r.PrivateData.Payout.PaymentDetails = nil
 
 	bytes, err := json.Marshal(r)
@@ -367,6 +368,7 @@ func TestVerify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -377,7 +379,6 @@ func TestVerify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
 			})),
 	)
 
-	_ = r.Sign(walletDID)
 	r.PrivateData.Payout.PaymentDetails = nil
 
 	bytes, err := json.Marshal(r)
@@ -397,6 +398,7 @@ func TestVerify_FailsBadSignature(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
@@ -407,8 +409,6 @@ func TestVerify_FailsBadSignature(t *testing.T) {
 			})),
 		rfq.Claims([]string{"my_jwt"}),
 	)
-
-	_ = r.Sign(walletDID)
 
 	r.Signature = "bad signature"
 
@@ -429,13 +429,12 @@ func TestVerify_InvalidSignature(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
 		rfq.Payout("BANK_ACCOUNT"),
 	)
-
-	_ = r.Sign(walletDID)
 
 	r.Signature = "Invalid"
 
@@ -457,13 +456,12 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
 
 	r, _ := rfq.Create(
+		walletDID,
 		pfiDID.URI,
 		offeringID.String(),
 		rfq.Payin("100", "STORED_BALANCE"),
 		rfq.Payout("BANK_ACCOUNT"),
 	)
-
-	_ = r.Sign(walletDID)
 
 	toSign, err := r.Digest()
 	assert.NoError(t, err)
