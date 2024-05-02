@@ -59,7 +59,7 @@ func TestUnmarshal_Empty(t *testing.T) {
 
 	os := orderstatus.OrderStatus{}
 
-	_ = json.Unmarshal([]byte(input), &os)
+	_ = json.Unmarshal(input, &os)
 
 	assert.Zero(t, os.Metadata)
 	assert.Zero(t, os.Data)

@@ -72,7 +72,7 @@ func TestUnmarshal_Empty(t *testing.T) {
 	input := []byte(`{"metadata":{},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpkaHQ6M3doZnRncGJkamloeDl6ZTl0ZG41NzV6cXptNHF3Y2NldG5mMXliaWlidXphZDdycm15eSMwIn0..ZvoVDuSrqqdXsSXgqB-U26tAU1WqUqqU_KpD1KvdYocIcmTsshjUASEwM_lUz1UnGglqkWeCIrHqrm9NNGDqBw"}`)
 
 	quote := quote.Quote{}
-	_ = json.Unmarshal([]byte(input), &quote)
+	_ = json.Unmarshal(input, &quote)
 
 	assert.Zero(t, quote.Metadata)
 	assert.Zero(t, quote.Data)

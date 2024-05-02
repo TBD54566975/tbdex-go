@@ -140,7 +140,6 @@ type createOptions struct {
 	createdAt  time.Time
 	protocol   string
 	externalID string
-	exchangeID string
 }
 
 // CreateOption defines a type for functions that can modify the createOptions struct.
@@ -164,13 +163,6 @@ func CreatedAt(t time.Time) CreateOption {
 func ExternalID(externalID string) CreateOption {
 	return func(o *createOptions) {
 		o.externalID = externalID
-	}
-}
-
-// ExchangeID can be passed to [Create] to provide a custom exchange id.
-func ExchangeID(exchangeID string) CreateOption {
-	return func(o *createOptions) {
-		o.exchangeID = exchangeID
 	}
 }
 
