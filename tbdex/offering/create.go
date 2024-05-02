@@ -39,7 +39,7 @@ func Create(fromDID did.BearerDID, payin *PayinDetails, payout *PayoutDetails, r
 	}
 
 	offering := Offering{
-		ResourceMetadata: &tbdex.ResourceMetadata{
+		Metadata: tbdex.ResourceMetadata{
 			From:      fromDID.URI,
 			Kind:      Kind,
 			ID:        o.id.String(),
@@ -47,7 +47,7 @@ func Create(fromDID did.BearerDID, payin *PayinDetails, payout *PayoutDetails, r
 			UpdatedAt: o.updatedAt.UTC().Format(time.RFC3339),
 			Protocol:  o.protocol,
 		},
-		Data: &Data{
+		Data: Data{
 			Payin:          payin,
 			Payout:         payout,
 			Rate:           rate,

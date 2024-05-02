@@ -50,15 +50,26 @@ func TestUnmarshalJSON(t *testing.T) {
 	assert.NoError(t, err)
 
 	os := orderstatus.OrderStatus{}
-	err = os.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &os)
 	assert.NoError(t, err)
+}
+
+func TestUnmarshal_Empty(t *testing.T) {
+	input := []byte(`{"metadata":{},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpkaHQ6M3doZnRncGJkamloeDl6ZTl0ZG41NzV6cXptNHF3Y2NldG5mMXliaWlidXphZDdycm15eSMwIn0..ZvoVDuSrqqdXsSXgqB-U26tAU1WqUqqU_KpD1KvdYocIcmTsshjUASEwM_lUz1UnGglqkWeCIrHqrm9NNGDqBw"}`)
+
+	os := orderstatus.OrderStatus{}
+
+	_ = json.Unmarshal([]byte(input), &os)
+
+	assert.Zero(t, os.Metadata)
+	assert.Zero(t, os.Data)
 }
 
 func TestUnmarshalJSON_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	os := orderstatus.OrderStatus{}
-	err := os.UnmarshalJSON(input)
+	err := json.Unmarshal(input, &os)
 	assert.Error(t, err)
 }
 

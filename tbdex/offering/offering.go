@@ -14,9 +14,9 @@ const Kind = "offering"
 
 // Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 type Offering struct {
-	*tbdex.ResourceMetadata `json:"metadata,omitempty"`
-	*Data                   `json:"data,omitempty"`
-	Signature               string `json:"signature,omitempty"`
+	Metadata  tbdex.ResourceMetadata `json:"metadata,omitempty"`
+	Data      Data                   `json:"data,omitempty"`
+	Signature string                 `json:"signature,omitempty"`
 }
 
 // Data represents the data of an Offering.
@@ -86,7 +86,7 @@ func (id ID) Prefix() string { return Kind }
 //   - It takes the algorithm identifier of the hash function and data to digest as input and returns
 //   - the digest of the data.
 func (o Offering) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": o.ResourceMetadata, "data": o.Data}
+	payload := map[string]any{"metadata": o.Metadata, "data": o.Data}
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
@@ -121,8 +121,8 @@ func (o *Offering) Verify() error {
 		return fmt.Errorf("failed to verify Offering signature: %w", err)
 	}
 
-	if decoded.SignerDID.URI != o.ResourceMetadata.From {
-		return fmt.Errorf("signer: %s does not match resource metadata from: %s", decoded.SignerDID.URI, o.ResourceMetadata.From)
+	if decoded.SignerDID.URI != o.Metadata.From {
+		return fmt.Errorf("signer: %s does not match resource metadata from: %s", decoded.SignerDID.URI, o.Metadata.From)
 	}
 
 	return nil

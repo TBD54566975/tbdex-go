@@ -51,7 +51,7 @@ func Create(fromDID did.BearerDID, to, offeringID string, payin PayinMethod, pay
 	}
 
 	rfq := RFQ{
-		MessageMetadata: tbdex.MessageMetadata{
+		Metadata: tbdex.MessageMetadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
