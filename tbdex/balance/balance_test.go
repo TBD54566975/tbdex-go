@@ -16,7 +16,7 @@ func TestCreate(t *testing.T) {
 
 	b, err := balance.Create(bearerDID, "USD", "100.00")
 	assert.NoError(t, err)
-	assert.NotZero(t, b.Available)
+	assert.NotZero(t, b.Data.Available)
 	assert.NotZero(t, b.Signature)
 }
 
