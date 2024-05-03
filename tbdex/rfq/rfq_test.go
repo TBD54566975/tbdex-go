@@ -77,7 +77,7 @@ func TestSign(t *testing.T) {
 	assert.NotZero(t, r.Signature)
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -94,15 +94,25 @@ func TestUnmarshalJSON(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
+}
+
+func TestUnmarshal_Empty(t *testing.T) {
+	input := []byte(`{"metadata":{},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpkaHQ6M3doZnRncGJkamloeDl6ZTl0ZG41NzV6cXptNHF3Y2NldG5mMXliaWlidXphZDdycm15eSMwIn0..ZvoVDuSrqqdXsSXgqB-U26tAU1WqUqqU_KpD1KvdYocIcmTsshjUASEwM_lUz1UnGglqkWeCIrHqrm9NNGDqBw"}`)
+
+	var rfq rfq.RFQ
+	_ = json.Unmarshal(input, &rfq)
+
+	assert.Zero(t, rfq.Metadata)
+	assert.Zero(t, rfq.Data)
 }
 
 func TestUnmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	var rfq rfq.RFQ
-	err := rfq.UnmarshalJSON(input)
+	err := json.Unmarshal(input, &rfq)
 	assert.Error(t, err)
 }
 
@@ -123,7 +133,7 @@ func TestVerify_NoPrivateDataStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -147,7 +157,7 @@ func TestVerify_NoPrivateDataNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -174,7 +184,7 @@ func TestVerify_FailsClaimsHashMismatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -208,7 +218,7 @@ func TestVerify_FailsPayoutHashMismatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -242,7 +252,7 @@ func TestVerify_FailsPayinHashMismatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -271,7 +281,7 @@ func TestVerify_ClaimsPrivateDataStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -298,7 +308,7 @@ func TestVerify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -325,7 +335,7 @@ func TestVerify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -355,7 +365,7 @@ func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -385,7 +395,7 @@ func TestVerify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -416,7 +426,7 @@ func TestVerify_FailsBadSignature(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(false)
@@ -442,7 +452,7 @@ func TestVerify_InvalidSignature(t *testing.T) {
 	assert.NoError(t, err)
 
 	var rfq rfq.RFQ
-	err = rfq.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
 	err = rfq.Verify(true)
@@ -475,7 +485,7 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	assert.NoError(t, err)
 
 	var RFQ rfq.RFQ
-	err = RFQ.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &RFQ)
 	assert.NoError(t, err)
 
 	err = RFQ.Verify(true)

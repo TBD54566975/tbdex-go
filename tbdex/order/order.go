@@ -17,9 +17,9 @@ const Kind = "order"
 //
 // [order]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#order
 type Order struct {
-	Metadata  tbdex.MessageMetadata `json:"metadata"`
-	Data      Data                  `json:"data"`
-	Signature string                `json:"signature"`
+	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
+	Data      Data                  `json:"data,omitempty"`
+	Signature string                `json:"signature,omitempty"`
 }
 
 // Data represents the data field of an order message.

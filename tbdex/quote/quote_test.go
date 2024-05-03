@@ -40,7 +40,7 @@ func TestCreate(t *testing.T) {
 	assert.NotZero(t, quote.Signature)
 }
 
-func TestUnmarshalJSON(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	rfqID, _ := typeid.WithPrefix(rfq.Kind)
@@ -64,15 +64,25 @@ func TestUnmarshalJSON(t *testing.T) {
 	assert.NoError(t, err)
 
 	quote := quote.Quote{}
-	err = quote.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &quote)
 	assert.NoError(t, err)
+}
+
+func TestUnmarshal_Empty(t *testing.T) {
+	input := []byte(`{"metadata":{},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpkaHQ6M3doZnRncGJkamloeDl6ZTl0ZG41NzV6cXptNHF3Y2NldG5mMXliaWlidXphZDdycm15eSMwIn0..ZvoVDuSrqqdXsSXgqB-U26tAU1WqUqqU_KpD1KvdYocIcmTsshjUASEwM_lUz1UnGglqkWeCIrHqrm9NNGDqBw"}`)
+
+	quote := quote.Quote{}
+	_ = json.Unmarshal(input, &quote)
+
+	assert.Zero(t, quote.Metadata)
+	assert.Zero(t, quote.Data)
 }
 
 func TestUnmarshal_Invalid(t *testing.T) {
 	input := []byte(`{"doo": "doo"}`)
 
 	quote := quote.Quote{}
-	err := quote.UnmarshalJSON(input)
+	err := json.Unmarshal(input, &quote)
 	assert.Error(t, err)
 }
 

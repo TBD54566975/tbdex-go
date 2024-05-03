@@ -15,9 +15,9 @@ const Kind = "balance"
 
 // Balance is a resource to communicate the amounts of each currency held by the PFI on behalf of its customer.
 type Balance struct {
-	*tbdex.ResourceMetadata `json:"metadata,omitempty"`
-	*Data                   `json:"data,omitempty"`
-	Signature               string `json:"signature,omitempty"`
+	Metadata  tbdex.ResourceMetadata `json:"metadata,omitempty"`
+	Data      Data                   `json:"data,omitempty"`
+	Signature string                 `json:"signature,omitempty"`
 }
 
 // Data represents the data of a Balance.
@@ -36,7 +36,7 @@ func (id ID) Prefix() string { return Kind }
 
 // Digest computes a hash of the resource
 func (b Balance) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": b.ResourceMetadata, "data": b.Data}
+	payload := map[string]any{"metadata": b.Metadata, "data": b.Data}
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
@@ -60,7 +60,7 @@ func Create(fromDID did.BearerDID, currencyCode, availableAmount string, opts ..
 	}
 
 	b := Balance{
-		ResourceMetadata: &tbdex.ResourceMetadata{
+		Metadata: tbdex.ResourceMetadata{
 			From:      fromDID.URI,
 			Kind:      Kind,
 			ID:        o.id.String(),
@@ -68,7 +68,7 @@ func Create(fromDID did.BearerDID, currencyCode, availableAmount string, opts ..
 			UpdatedAt: o.updatedAt.UTC().Format(time.RFC3339),
 			Protocol:  o.protocol,
 		},
-		Data: &Data{
+		Data: Data{
 			CurrencyCode: currencyCode,
 			Available:    availableAmount,
 		},
@@ -133,8 +133,8 @@ func (b *Balance) Verify() error {
 		return fmt.Errorf("failed to verify Balance signature: %w", err)
 	}
 
-	if decoded.SignerDID.URI != b.ResourceMetadata.From {
-		return fmt.Errorf("signer: %s does not match resource metadata from: %s", decoded.SignerDID.URI, b.ResourceMetadata.From)
+	if decoded.SignerDID.URI != b.Metadata.From {
+		return fmt.Errorf("signer: %s does not match resource metadata from: %s", decoded.SignerDID.URI, b.Metadata.From)
 	}
 
 	return nil
@@ -143,7 +143,7 @@ func (b *Balance) Verify() error {
 // Parse validates, parses input data into a Balance, and verifies the signature.
 func Parse(data []byte) (Balance, error) {
 	balance := Balance{}
-	if err := balance.UnmarshalJSON(data); err != nil {
+	if err := json.Unmarshal(data, &balance); err != nil {
 		return Balance{}, fmt.Errorf("failed to unmarshal Balance: %w", err)
 	}
 

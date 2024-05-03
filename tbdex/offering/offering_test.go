@@ -90,7 +90,7 @@ func TestUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	var o2 offering.Offering
-	err = o2.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &o2)
 	assert.NoError(t, err)
 }
 
@@ -100,6 +100,16 @@ func TestUnmarshal_Invalid(t *testing.T) {
 	var o offering.Offering
 	err := json.Unmarshal(input, &o)
 	assert.Error(t, err)
+}
+
+func TestUnmarshal_Empty(t *testing.T) {
+	input := []byte(`{"metadata":{},"data":{},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpkaHQ6M3doZnRncGJkamloeDl6ZTl0ZG41NzV6cXptNHF3Y2NldG5mMXliaWlidXphZDdycm15eSMwIn0..ZvoVDuSrqqdXsSXgqB-U26tAU1WqUqqU_KpD1KvdYocIcmTsshjUASEwM_lUz1UnGglqkWeCIrHqrm9NNGDqBw"}`)
+
+	var o offering.Offering
+	_ = json.Unmarshal(input, &o)
+
+	assert.Zero(t, o.Metadata)
+	assert.Zero(t, o.Data)
 }
 
 func TestVerify(t *testing.T) {

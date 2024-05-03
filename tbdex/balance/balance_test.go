@@ -16,7 +16,7 @@ func TestCreate(t *testing.T) {
 
 	b, err := balance.Create(bearerDID, "USD", "100.00")
 	assert.NoError(t, err)
-	assert.NotZero(t, b.Available)
+	assert.NotZero(t, b.Data.Available)
 	assert.NotZero(t, b.Signature)
 }
 
@@ -30,7 +30,7 @@ func TestUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	var b2 balance.Balance
-	err = b2.UnmarshalJSON(bytes)
+	err = json.Unmarshal(bytes, &b2)
 	assert.NoError(t, err)
 }
 
@@ -46,7 +46,7 @@ func TestUnmarshal_Invalid(t *testing.T) {
 
 	for _, v := range cases {
 		var b balance.Balance
-		err := b.UnmarshalJSON([]byte(v))
+		err := json.Unmarshal([]byte(v), &b)
 		assert.Error(t, err)
 	}
 }

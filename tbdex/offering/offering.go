@@ -14,23 +14,23 @@ const Kind = "offering"
 
 // Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 type Offering struct {
-	tbdex.ResourceMetadata `json:"metadata"`
-	Data                   `json:"data"`
-	Signature              string `json:"signature"`
+	Metadata  tbdex.ResourceMetadata `json:"metadata,omitempty"`
+	Data      Data                   `json:"data,omitempty"`
+	Signature string                 `json:"signature,omitempty"`
 }
 
 // Data represents the data of an Offering.
 type Data struct {
-	Description    string                        `json:"description"`
-	Rate           string                        `json:"payoutUnitsPerPayinUnit"`
-	Payin          PayinDetails                  `json:"payin,omitempty"`
-	Payout         PayoutDetails                 `json:"payout,omitempty"`
+	Description    string                        `json:"description,omitempty"`
+	Rate           string                        `json:"payoutUnitsPerPayinUnit,omitempty"`
+	Payin          *PayinDetails                 `json:"payin,omitempty"`
+	Payout         *PayoutDetails                `json:"payout,omitempty"`
 	RequiredClaims *pexv2.PresentationDefinition `json:"requiredClaims,omitempty"`
 }
 
 // PayinDetails represents the details of the payin part of an Offering.
 type PayinDetails struct {
-	CurrencyCode string        `json:"currencyCode"`
+	CurrencyCode string        `json:"currencyCode,omitempty"`
 	Min          string        `json:"min,omitempty"`
 	Max          string        `json:"max,omitempty"`
 	Methods      []PayinMethod `json:"methods,omitempty"`
@@ -38,7 +38,7 @@ type PayinDetails struct {
 
 // PayoutDetails represents the details of the payout part of an Offering.
 type PayoutDetails struct {
-	CurrencyCode string         `json:"currencyCode"`
+	CurrencyCode string         `json:"currencyCode,omitempty"`
 	Min          string         `json:"min,omitempty"`
 	Max          string         `json:"max,omitempty"`
 	Methods      []PayoutMethod `json:"methods,omitempty"`
@@ -46,7 +46,7 @@ type PayoutDetails struct {
 
 // PayinMethod represents a single payment option on an Offering.
 type PayinMethod struct {
-	Kind                   string          `json:"kind"`
+	Kind                   string          `json:"kind,omitmempty"`
 	Name                   string          `json:"name,omitempty"`
 	Description            string          `json:"description,omitempty"`
 	Group                  string          `json:"group,omitempty"`
@@ -58,7 +58,7 @@ type PayinMethod struct {
 
 // PayoutMethod contains all the fields from PaymentMethod, in addition to estimated settlement time.
 type PayoutMethod struct {
-	Kind                    string          `json:"kind"`
+	Kind                    string          `json:"kind,omitempty"`
 	Name                    string          `json:"name,omitempty"`
 	Description             string          `json:"description,omitempty"`
 	Group                   string          `json:"group,omitempty"`
@@ -66,7 +66,7 @@ type PayoutMethod struct {
 	Fee                     string          `json:"fee,omitempty"`
 	Min                     string          `json:"min,omitempty"`
 	Max                     string          `json:"max,omitempty"`
-	EstimatedSettlementTime uint64          `json:"estimatedSettlementTime"`
+	EstimatedSettlementTime uint64          `json:"estimatedSettlementTime,omitempty"`
 }
 
 // ID is a unique identifier for an Offering.
@@ -86,7 +86,7 @@ func (id ID) Prefix() string { return Kind }
 //   - It takes the algorithm identifier of the hash function and data to digest as input and returns
 //   - the digest of the data.
 func (o Offering) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": o.ResourceMetadata, "data": o.Data}
+	payload := map[string]any{"metadata": o.Metadata, "data": o.Data}
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
@@ -121,8 +121,8 @@ func (o *Offering) Verify() error {
 		return fmt.Errorf("failed to verify Offering signature: %w", err)
 	}
 
-	if decoded.SignerDID.URI != o.ResourceMetadata.From {
-		return fmt.Errorf("signer: %s does not match resource metadata from: %s", decoded.SignerDID.URI, o.ResourceMetadata.From)
+	if decoded.SignerDID.URI != o.Metadata.From {
+		return fmt.Errorf("signer: %s does not match resource metadata from: %s", decoded.SignerDID.URI, o.Metadata.From)
 	}
 
 	return nil
@@ -130,7 +130,7 @@ func (o *Offering) Verify() error {
 
 // Parse validates, parses input data into an Offering, and verifies the signature.
 func (o *Offering) Parse(data []byte) error {
-	if err := o.UnmarshalJSON(data); err != nil {
+	if err := json.Unmarshal(data, &o); err != nil {
 		return fmt.Errorf("failed to unmarshal Offering: %w", err)
 	}
 

@@ -15,23 +15,23 @@ const Kind = "quote"
 
 // Quote represents a quote message within the exchange.
 type Quote struct {
-	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
-	Data            Data                  `json:"data"`
-	Signature       string                `json:"signature"`
+	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
+	Data      Data                  `json:"data,omitempty"`
+	Signature string                `json:"signature,omitempty"`
 }
 
 // Data encapsulates the data content of a  quote.
 type Data struct {
-	ExpiresAt string       `json:"expiresAt"`
-	Payin     QuoteDetails `json:"payin"`
-	Payout    QuoteDetails `json:"payout"`
+	ExpiresAt string       `json:"expiresAt,omitmepty"`
+	Payin     QuoteDetails `json:"payin,omitempty"`
+	Payout    QuoteDetails `json:"payout,omitempty"`
 }
 
 // QuoteDetails describes the relevant information of a currency that is being sent or received
 type QuoteDetails struct {
-	CurrencyCode       string              `json:"currencyCode"`
-	Amount             string              `json:"amount"`
-	Fee                string              `json:"fee,omitempty"`
+	CurrencyCode       string              `json:"currencyCode,omitempty"`
+	Amount             string              `json:"amount,omitempty"`
+	Fee                string              `json:"fee,omitempty,omitempty"`
 	PaymentInstruction *PaymentInstruction `json:"paymentInstruction,omitempty"`
 }
 
@@ -43,7 +43,7 @@ type PaymentInstruction struct {
 
 // Digest computes a hash of the quote
 func (q Quote) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": q.MessageMetadata, "data": q.Data}
+	payload := map[string]any{"metadata": q.Metadata, "data": q.Data}
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
@@ -60,8 +60,8 @@ func (q *Quote) Verify() error {
 		return fmt.Errorf("failed to verify quote signature: %w", err)
 	}
 
-	if decoded.SignerDID.URI != q.MessageMetadata.From {
-		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, q.MessageMetadata.From)
+	if decoded.SignerDID.URI != q.Metadata.From {
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, q.Metadata.From)
 	}
 
 	return nil
@@ -85,19 +85,18 @@ func (q *Quote) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Parse validates, parses input data into an Quote, and verifies the signature and private data.
-func (q *Quote) Parse(data []byte, privateDataStrict bool) error {
-	err := q.UnmarshalJSON(data)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal Quote: %w", err)
+// Parse validates, parses input data into an Quote, and verifies the signature.
+func Parse(data []byte) (Quote, error) {
+	q := Quote{}
+	if err := json.Unmarshal(data, &q); err != nil {
+		return Quote{}, fmt.Errorf("failed to unmarshal Quote: %w", err)
 	}
 
-	err = q.Verify()
-	if err != nil {
-		return fmt.Errorf("failed to verify Quote: %w", err)
+	if err := q.Verify(); err != nil {
+		return Quote{}, fmt.Errorf("failed to verify Quote: %w", err)
 	}
 
-	return nil
+	return q, nil
 }
 
 // Create generates a new Quote with the specified parameters and options.
@@ -113,7 +112,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payo
 	}
 
 	quote := Quote{
-		MessageMetadata: tbdex.MessageMetadata{
+		Metadata: tbdex.MessageMetadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -141,7 +140,6 @@ type createOptions struct {
 	createdAt  time.Time
 	protocol   string
 	externalID string
-	exchangeID string
 }
 
 // CreateOption defines a type for functions that can modify the createOptions struct.
@@ -165,13 +163,6 @@ func CreatedAt(t time.Time) CreateOption {
 func ExternalID(externalID string) CreateOption {
 	return func(o *createOptions) {
 		o.externalID = externalID
-	}
-}
-
-// ExchangeID can be passed to [Create] to provide a custom exchange id.
-func ExchangeID(exchangeID string) CreateOption {
-	return func(o *createOptions) {
-		o.exchangeID = exchangeID
 	}
 }
 

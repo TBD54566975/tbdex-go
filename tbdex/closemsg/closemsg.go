@@ -15,9 +15,9 @@ const Kind = "close"
 
 // Close represents a close message within the exchange.
 type Close struct {
-	MessageMetadata *tbdex.MessageMetadata `json:"metadata,omitempty"`
-	Data            *Data                  `json:"data,omitempty"`
-	Signature       string                 `json:"signature,omitempty"`
+	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
+	Data      Data                  `json:"data,omitempty"`
+	Signature string                `json:"signature,omitempty"`
 }
 
 // Data encapsulates the data content of a close.
@@ -28,7 +28,7 @@ type Data struct {
 
 // Digest computes a hash of the message
 func (c Close) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": c.MessageMetadata, "data": c.Data}
+	payload := map[string]any{"metadata": c.Metadata, "data": c.Data}
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
@@ -45,8 +45,8 @@ func (c *Close) Verify() error {
 		return fmt.Errorf("failed to verify close signature: %w", err)
 	}
 
-	if decoded.SignerDID.URI != c.MessageMetadata.From {
-		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, c.MessageMetadata.From)
+	if decoded.SignerDID.URI != c.Metadata.From {
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, c.Metadata.From)
 	}
 
 	return nil
@@ -72,19 +72,16 @@ func (c *Close) UnmarshalJSON(data []byte) error {
 
 // Parse validates and unmarshals the input data into a Close.
 func Parse(data []byte) (Close, error) {
-	os := Close{}
-	err := os.UnmarshalJSON(data)
-	if err != nil {
-		return Close{}, err
-
+	c := Close{}
+	if err := json.Unmarshal(data, &c); err != nil {
+		return Close{}, fmt.Errorf("failed to unmarshal Close: %w", err)
 	}
 
-	err = os.Verify()
-	if err != nil {
-		return Close{}, fmt.Errorf("failed to verify close: %w", err)
+	if err := c.Verify(); err != nil {
+		return Close{}, fmt.Errorf("failed to verify Close: %w", err)
 	}
 
-	return os, nil
+	return c, nil
 }
 
 // Create creates a new Close message.
@@ -100,7 +97,7 @@ func Create(fromDID did.BearerDID, to, exchangeID string, opts ...CreateOption) 
 	}
 
 	c := Close{
-		MessageMetadata: &tbdex.MessageMetadata{
+		Metadata: tbdex.MessageMetadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -110,7 +107,7 @@ func Create(fromDID did.BearerDID, to, exchangeID string, opts ...CreateOption) 
 			ExternalID: o.externalID,
 			Protocol:   o.protocol,
 		},
-		Data: &Data{Reason: o.reason, Success: o.success},
+		Data: Data{Reason: o.reason, Success: o.success},
 	}
 
 	signature, err := tbdex.Sign(c, fromDID)

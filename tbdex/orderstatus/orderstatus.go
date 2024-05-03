@@ -15,9 +15,9 @@ const Kind = "orderstatus"
 
 // OrderStatus represents an order status message within the exchange.
 type OrderStatus struct {
-	MessageMetadata *tbdex.MessageMetadata `json:"metadata,omitempty"`
-	Data            *Data                  `json:"data,omitempty"`
-	Signature       string                 `json:"signature,omitempty"`
+	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
+	Data      Data                  `json:"data,omitempty"`
+	Signature string                `json:"signature,omitempty"`
 }
 
 // Data encapsulates the data content of an order status.
@@ -27,7 +27,7 @@ type Data struct {
 
 // Digest computes a hash of the message
 func (os OrderStatus) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": os.MessageMetadata, "data": os.Data}
+	payload := map[string]any{"metadata": os.Metadata, "data": os.Data}
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
@@ -44,8 +44,8 @@ func (os *OrderStatus) Verify() error {
 		return fmt.Errorf("failed to verify OrderStatus signature: %w", err)
 	}
 
-	if decoded.SignerDID.URI != os.MessageMetadata.From {
-		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, os.MessageMetadata.From)
+	if decoded.SignerDID.URI != os.Metadata.From {
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, os.Metadata.From)
 	}
 
 	return nil
@@ -72,14 +72,12 @@ func (os *OrderStatus) UnmarshalJSON(data []byte) error {
 // Parse validates and unmarshals the input data into an OrderStatus.
 func Parse(data []byte) (OrderStatus, error) {
 	os := OrderStatus{}
-	err := os.UnmarshalJSON(data)
-	if err != nil {
-		return OrderStatus{}, err
+	if err := json.Unmarshal(data, &os); err != nil {
+		return OrderStatus{}, fmt.Errorf("failed to unmarshal order status: %w", err)
 
 	}
 
-	err = os.Verify()
-	if err != nil {
+	if err := os.Verify(); err != nil {
 		return OrderStatus{}, fmt.Errorf("failed to verify order status: %w", err)
 	}
 
@@ -99,7 +97,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...C
 	}
 
 	os := OrderStatus{
-		MessageMetadata: &tbdex.MessageMetadata{
+		Metadata: tbdex.MessageMetadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -109,7 +107,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...C
 			ExternalID: o.externalID,
 			Protocol:   o.protocol,
 		},
-		Data: &Data{OrderStatus: orderStatus},
+		Data: Data{OrderStatus: orderStatus},
 	}
 
 	signature, err := tbdex.Sign(os, fromDID)

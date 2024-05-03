@@ -14,10 +14,10 @@ const Kind = "rfq"
 
 // RFQ represents a request for quote message within the exchange.
 type RFQ struct {
-	MessageMetadata tbdex.MessageMetadata `json:"metadata"`
-	Data            Data                  `json:"data"`
-	PrivateData     *PrivateData          `json:"privateData,omitempty"`
-	Signature       string                `json:"signature"`
+	Metadata    tbdex.MessageMetadata `json:"metadata,omitempty"`
+	Data        Data                  `json:"data,omitempty"`
+	PrivateData *PrivateData          `json:"privateData,omitempty"`
+	Signature   string                `json:"signature,omitempty"`
 }
 
 // UnmarshalJSON validates and unmarshals the input data into an RFQ.
@@ -45,8 +45,8 @@ func (r *RFQ) Verify(privateDataStrict bool) error {
 		return fmt.Errorf("failed to verify RFQ signature: %w", err)
 	}
 
-	if decoded.SignerDID.URI != r.MessageMetadata.From {
-		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, r.MessageMetadata.From)
+	if decoded.SignerDID.URI != r.Metadata.From {
+		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, r.Metadata.From)
 	}
 
 	err = r.verifyPrivateData(privateDataStrict)
@@ -58,23 +58,22 @@ func (r *RFQ) Verify(privateDataStrict bool) error {
 }
 
 // Parse validates, parses input data into an RFQ, and verifies the signature and private data.
-func (r *RFQ) Parse(data []byte, privateDataStrict bool) error {
-	err := r.UnmarshalJSON(data)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal RFQ: %w", err)
+func Parse(data []byte, privateDataStrict bool) (RFQ, error) {
+	r := RFQ{}
+	if err := json.Unmarshal(data, &r); err != nil {
+		return RFQ{}, fmt.Errorf("failed to unmarshal RFQ: %w", err)
 	}
 
-	err = r.Verify(privateDataStrict)
-	if err != nil {
-		return fmt.Errorf("failed to verify RFQ: %w", err)
+	if err := r.Verify(privateDataStrict); err != nil {
+		return RFQ{}, fmt.Errorf("failed to verify RFQ: %w", err)
 	}
 
-	return nil
+	return r, nil
 }
 
 // Digest computes a hash of the rfq
 func (r RFQ) Digest() ([]byte, error) {
-	payload := map[string]any{"metadata": r.MessageMetadata, "data": r.Data}
+	payload := map[string]any{"metadata": r.Metadata, "data": r.Data}
 
 	hashed, err := tbdex.DigestJSON(payload)
 	if err != nil {
