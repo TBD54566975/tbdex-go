@@ -17,6 +17,11 @@ import (
 // Kind is the value used within a message's metadata.kind
 const Kind = "order"
 
+// ValidNext returns the valid message kinds that can follow an order.
+func ValidNext() []string {
+	return []string{orderstatus.Kind, closemsg.Kind}
+}
+
 // Order represents a tbdex [order] message.
 //
 // [order]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#order
@@ -26,10 +31,12 @@ type Order struct {
 	Signature string           `json:"signature,omitempty"`
 }
 
+// Kind returns the kind of message
 func (o Order) Kind() string {
 	return o.Metadata.Kind
 }
 
+// ValidNext returns the valid message kinds that can follow an order.
 func (o Order) ValidNext() []string {
 	return []string{orderstatus.Kind, closemsg.Kind}
 }

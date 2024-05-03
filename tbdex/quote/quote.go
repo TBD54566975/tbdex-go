@@ -17,6 +17,11 @@ import (
 // Kind identifies this message kind
 const Kind = "quote"
 
+// ValidNext returns the valid message kinds that can follow a Quote.
+func ValidNext() []string {
+	return []string{order.Kind, closemsg.Kind}
+}
+
 // Quote represents a quote message within the exchange.
 type Quote struct {
 	Metadata  message.Metadata `json:"metadata,omitempty"`
@@ -24,12 +29,14 @@ type Quote struct {
 	Signature string           `json:"signature,omitempty"`
 }
 
+// Kind returns the kind of message
 func (q Quote) Kind() string {
 	return Kind
 }
 
+// ValidNext returns the valid message kinds that can follow a Quote.
 func (q Quote) ValidNext() []string {
-	return []string{order.Kind, closemsg.Kind}
+	return ValidNext()
 }
 
 // Data encapsulates the data content of a  quote.

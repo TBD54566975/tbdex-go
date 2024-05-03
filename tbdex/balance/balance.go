@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/resource"
 	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
@@ -17,9 +17,9 @@ const Kind = "balance"
 
 // Balance is a resource to communicate the amounts of each currency held by the PFI on behalf of its customer.
 type Balance struct {
-	Metadata  tbdex.ResourceMetadata `json:"metadata,omitempty"`
-	Data      Data                   `json:"data,omitempty"`
-	Signature string                 `json:"signature,omitempty"`
+	Metadata  resource.Metadata `json:"metadata,omitempty"`
+	Data      Data              `json:"data,omitempty"`
+	Signature string            `json:"signature,omitempty"`
 }
 
 // Data represents the data of a Balance.
@@ -62,7 +62,7 @@ func Create(fromDID did.BearerDID, currencyCode, availableAmount string, opts ..
 	}
 
 	b := Balance{
-		Metadata: tbdex.ResourceMetadata{
+		Metadata: resource.Metadata{
 			From:      fromDID.URI,
 			Kind:      Kind,
 			ID:        o.id.String(),

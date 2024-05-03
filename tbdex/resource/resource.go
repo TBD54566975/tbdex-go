@@ -1,7 +1,7 @@
-package tbdex
+package resource
 
-// ResourceMetadata represents the metadata of a resource e.g. offering, balance etc.
-type ResourceMetadata struct {
+// Metadata represents the metadata of a resource e.g. offering, balance etc.
+type Metadata struct {
 	From      string `json:"from"`
 	Kind      string `json:"kind"`
 	ID        string `json:"id"`

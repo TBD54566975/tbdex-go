@@ -16,6 +16,11 @@ import (
 // Kind identifies this message kind
 const Kind = "rfq"
 
+// ValidNext returns the valid message kinds that can follow a RFQ.
+func ValidNext() []string {
+	return []string{quote.Kind, closemsg.Kind}
+}
+
 // RFQ represents a request for quote message within the exchange.
 type RFQ struct {
 	Metadata    message.Metadata `json:"metadata,omitempty"`
@@ -24,12 +29,14 @@ type RFQ struct {
 	Signature   string           `json:"signature,omitempty"`
 }
 
+// Kind returns the kind of message
 func (r RFQ) Kind() string {
 	return Kind
 }
 
+// ValidNext returns the valid message kinds that can follow a RFQ.
 func (r RFQ) ValidNext() []string {
-	return []string{quote.Kind, closemsg.Kind}
+	return ValidNext()
 }
 
 // UnmarshalJSON validates and unmarshals the input data into an RFQ.

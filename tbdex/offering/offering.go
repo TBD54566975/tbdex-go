@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/resource"
 	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
@@ -16,9 +16,9 @@ const Kind = "offering"
 
 // Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 type Offering struct {
-	Metadata  tbdex.ResourceMetadata `json:"metadata,omitempty"`
-	Data      Data                   `json:"data,omitempty"`
-	Signature string                 `json:"signature,omitempty"`
+	Metadata  resource.Metadata `json:"metadata,omitempty"`
+	Data      Data              `json:"data,omitempty"`
+	Signature string            `json:"signature,omitempty"`
 }
 
 // Data represents the data of an Offering.

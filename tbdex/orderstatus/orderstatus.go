@@ -16,6 +16,11 @@ import (
 // Kind identifies this message kind
 const Kind = "orderstatus"
 
+// ValidNext returns the valid next message kinds that can follow an orderstatus
+func ValidNext() []string {
+	return []string{Kind, closemsg.Kind}
+}
+
 // OrderStatus represents an order status message within the exchange.
 type OrderStatus struct {
 	Metadata  message.Metadata `json:"metadata,omitempty"`
@@ -23,10 +28,12 @@ type OrderStatus struct {
 	Signature string           `json:"signature,omitempty"`
 }
 
+// Kind returns the kind of message
 func (os OrderStatus) Kind() string {
 	return os.Metadata.Kind
 }
 
+// ValidNext returns the valid next message kinds that can follow an orderstatus
 func (os OrderStatus) ValidNext() []string {
 	return []string{Kind, closemsg.Kind}
 }
