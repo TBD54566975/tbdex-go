@@ -22,10 +22,12 @@ type Close struct {
 	Signature string           `json:"signature,omitempty"`
 }
 
+// Kind returns the kind of message.
 func (c Close) Kind() string {
 	return c.Metadata.Kind
 }
 
+// ValidNext returns the kinds of messages that can follow a close.
 func (c Close) ValidNext() []string {
 	return []string{}
 }

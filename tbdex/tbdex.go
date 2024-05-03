@@ -27,53 +27,13 @@ type msg struct {
 }
 
 // DecodeMessage unmarshals a message. It uses the metadata kind to determine the type of message.
-// Note: unmarshaling includes validation
-func DecodeMessage(data []byte) (Message, error) {
-	var msg msg
-	err := json.Unmarshal(data, &msg)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal partial message to determine kind: %w", err)
-	}
-
-	switch msg.Metadata.Kind {
-	case librfq.Kind:
-
-		var rfq librfq.RFQ
-		if err := json.Unmarshal(data, &rfq); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal rfq: %w", err)
-		}
-
-		return rfq, nil
-	case libquote.Kind:
-		var quote libquote.Quote
-		if err := json.Unmarshal(data, &quote); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal quote: %w", err)
-		}
-
-		return quote, nil
-	case liborder.Kind:
-		var order liborder.Order
-		if err := json.Unmarshal(data, &order); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal order: %w", err)
-		}
-
-		return order, nil
-	case libclose.Kind:
-		var closemsg libclose.Close
-		if err := json.Unmarshal(data, &closemsg); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal close: %w", err)
-		}
-
-		return closemsg, nil
-	default:
-		return nil, fmt.Errorf("unknown message kind: %v", msg.Metadata.Kind)
-	}
-}
-
-func ParseMessage(data []byte) (Message, error) {
+//
+// # Note
+//
+// unmarshaling includes validation
+func DecodeMessage(input []byte) (Message, error) {
 	var m msg
-	err := json.Unmarshal(data, &m)
+	err := json.Unmarshal(input, &m)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal partial message to determine kind: %w", err)
@@ -82,21 +42,70 @@ func ParseMessage(data []byte) (Message, error) {
 	switch m.Metadata.Kind {
 	case librfq.Kind:
 
-		rfq, err := librfq.Parse(data, false)
+		var rfq librfq.RFQ
+		if err := json.Unmarshal(input, &rfq); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal rfq: %w", err)
+		}
+
+		return rfq, nil
+	case libquote.Kind:
+		var quote libquote.Quote
+		if err := json.Unmarshal(input, &quote); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal quote: %w", err)
+		}
+
+		return quote, nil
+	case liborder.Kind:
+		var order liborder.Order
+		if err := json.Unmarshal(input, &order); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal order: %w", err)
+		}
+
+		return order, nil
+	case libclose.Kind:
+		var closemsg libclose.Close
+		if err := json.Unmarshal(input, &closemsg); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal close: %w", err)
+		}
+
+		return closemsg, nil
+	default:
+		return nil, fmt.Errorf("unknown message kind: %v", m.Metadata.Kind)
+	}
+}
+
+// ParseMessage parses a message. It uses the metadata kind to determine the type of message.
+//
+// # Note
+//
+// parsing validates the message and verifies the integrity of the message which can lead to
+// a network request in order to resolve the signer's DID
+func ParseMessage(input []byte) (Message, error) {
+	var m msg
+	err := json.Unmarshal(input, &m)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal partial message to determine kind: %w", err)
+	}
+
+	switch m.Metadata.Kind {
+	case librfq.Kind:
+
+		rfq, err := librfq.Parse(input, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse rfq: %w", err)
 		}
 
 		return rfq, nil
 	case libquote.Kind:
-		quote, err := libquote.Parse(data)
+		quote, err := libquote.Parse(input)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse quote: %w", err)
 		}
 
 		return quote, nil
 	case liborder.Kind:
-		order, err := liborder.Parse(data)
+		order, err := liborder.Parse(input)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse order: %w", err)
 		}
@@ -104,7 +113,7 @@ func ParseMessage(data []byte) (Message, error) {
 		return order, nil
 
 	case libclose.Kind:
-		closemsg, err := libclose.Parse(data)
+		closemsg, err := libclose.Parse(input)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse close: %w", err)
 		}
