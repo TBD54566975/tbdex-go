@@ -1,4 +1,4 @@
-package tbdex
+package crypto
 
 import (
 	"crypto/sha256"

@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/message"
+	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -15,9 +18,17 @@ const Kind = "orderstatus"
 
 // OrderStatus represents an order status message within the exchange.
 type OrderStatus struct {
-	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
-	Data      Data                  `json:"data,omitempty"`
-	Signature string                `json:"signature,omitempty"`
+	Metadata  message.Metadata `json:"metadata,omitempty"`
+	Data      Data             `json:"data,omitempty"`
+	Signature string           `json:"signature,omitempty"`
+}
+
+func (os OrderStatus) Kind() string {
+	return os.Metadata.Kind
+}
+
+func (os OrderStatus) ValidNext() []string {
+	return []string{Kind, closemsg.Kind}
 }
 
 // Data encapsulates the data content of an order status.
@@ -29,7 +40,7 @@ type Data struct {
 func (os OrderStatus) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": os.Metadata, "data": os.Data}
 
-	hashed, err := tbdex.DigestJSON(payload)
+	hashed, err := crypto.DigestJSON(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to digest order status: %w", err)
 	}
@@ -39,7 +50,7 @@ func (os OrderStatus) Digest() ([]byte, error) {
 
 // Verify verifies the signature of the OrderStatus.
 func (os *OrderStatus) Verify() error {
-	decoded, err := tbdex.VerifySignature(os, os.Signature)
+	decoded, err := crypto.VerifySignature(os, os.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify OrderStatus signature: %w", err)
 	}
@@ -53,7 +64,7 @@ func (os *OrderStatus) Verify() error {
 
 // UnmarshalJSON validates and unmarshals the input data into an OrderStatus.
 func (os *OrderStatus) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
+	err := validator.Validate(validator.TypeMessage, data, validator.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid order status: %w", err)
 	}
@@ -97,7 +108,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...C
 	}
 
 	os := OrderStatus{
-		Metadata: tbdex.MessageMetadata{
+		Metadata: message.Metadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -110,7 +121,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...C
 		Data: Data{OrderStatus: orderStatus},
 	}
 
-	signature, err := tbdex.Sign(os, fromDID)
+	signature, err := crypto.Sign(os, fromDID)
 	if err != nil {
 		return OrderStatus{}, fmt.Errorf("failed to sign order status: %w", err)
 	}

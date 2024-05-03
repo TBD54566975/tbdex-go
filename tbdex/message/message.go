@@ -1,7 +1,7 @@
-package tbdex
+package message
 
-// MessageMetadata represents the metadata of a message e.g. RFQ, quote etc.
-type MessageMetadata struct {
+// Metadata represents the metadata of a message e.g. RFQ, quote etc.
+type Metadata struct {
 	From       string `json:"from"`
 	To         string `json:"to"`
 	Kind       string `json:"kind"`

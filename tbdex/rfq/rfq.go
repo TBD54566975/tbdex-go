@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/message"
+	"github.com/TBD54566975/tbdex-go/tbdex/quote"
+	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 )
 
 // Kind identifies this message kind
@@ -14,15 +18,23 @@ const Kind = "rfq"
 
 // RFQ represents a request for quote message within the exchange.
 type RFQ struct {
-	Metadata    tbdex.MessageMetadata `json:"metadata,omitempty"`
-	Data        Data                  `json:"data,omitempty"`
-	PrivateData *PrivateData          `json:"privateData,omitempty"`
-	Signature   string                `json:"signature,omitempty"`
+	Metadata    message.Metadata `json:"metadata,omitempty"`
+	Data        Data             `json:"data,omitempty"`
+	PrivateData *PrivateData     `json:"privateData,omitempty"`
+	Signature   string           `json:"signature,omitempty"`
+}
+
+func (r RFQ) Kind() string {
+	return Kind
+}
+
+func (r RFQ) ValidNext() []string {
+	return []string{quote.Kind, closemsg.Kind}
 }
 
 // UnmarshalJSON validates and unmarshals the input data into an RFQ.
 func (r *RFQ) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
+	err := validator.Validate(validator.TypeMessage, data, validator.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid rfq: %w", err)
 	}
@@ -40,7 +52,7 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature and private data hashes of the RFQ.
 func (r *RFQ) Verify(privateDataStrict bool) error {
-	decoded, err := tbdex.VerifySignature(r, r.Signature)
+	decoded, err := crypto.VerifySignature(r, r.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify RFQ signature: %w", err)
 	}
@@ -75,7 +87,7 @@ func Parse(data []byte, privateDataStrict bool) (RFQ, error) {
 func (r RFQ) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": r.Metadata, "data": r.Data}
 
-	hashed, err := tbdex.DigestJSON(payload)
+	hashed, err := crypto.DigestJSON(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to digest rfq: %w", err)
 	}
@@ -95,7 +107,7 @@ func (r *RFQ) verifyPrivateData(strict bool) error {
 		}
 		if len(r.PrivateData.Claims) != 0 {
 			payload := []any{r.PrivateData.Salt, r.PrivateData.Claims}
-			if err := tbdex.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
+			if err := crypto.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
 				return fmt.Errorf("failed to verify claims: %w", err)
 			}
 		}
@@ -108,7 +120,7 @@ func (r *RFQ) verifyPrivateData(strict bool) error {
 		}
 		if r.PrivateData.Payin.PaymentDetails != nil {
 			payload := []any{r.PrivateData.Salt, r.PrivateData.Payin.PaymentDetails}
-			if err := tbdex.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
+			if err := crypto.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
 				return fmt.Errorf("failed to verify payin: %w", err)
 			}
 		}
@@ -121,7 +133,7 @@ func (r *RFQ) verifyPrivateData(strict bool) error {
 		}
 		if r.PrivateData.Payout.PaymentDetails != nil {
 			payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
-			if err := tbdex.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
+			if err := crypto.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
 				return fmt.Errorf("failed to verify payout: %w", err)
 			}
 		}

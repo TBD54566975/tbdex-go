@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
-	"github.com/tbd54566975/web5-go/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/message"
+
+	web5crypto "github.com/tbd54566975/web5-go/crypto"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -27,7 +29,7 @@ func Create(fromDID did.BearerDID, to, offeringID string, payin PayinMethod, pay
 		opt(&r)
 	}
 
-	randomBytes, err := crypto.GenerateEntropy(crypto.Entropy128)
+	randomBytes, err := web5crypto.GenerateEntropy(web5crypto.Entropy128)
 	if err != nil {
 		return RFQ{}, err
 	}
@@ -51,7 +53,7 @@ func Create(fromDID did.BearerDID, to, offeringID string, payin PayinMethod, pay
 	}
 
 	rfq := RFQ{
-		Metadata: tbdex.MessageMetadata{
+		Metadata: message.Metadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -74,7 +76,7 @@ func Create(fromDID did.BearerDID, to, offeringID string, payin PayinMethod, pay
 		rfq.PrivateData = &privateData
 	}
 
-	signature, err := tbdex.Sign(rfq, fromDID)
+	signature, err := crypto.Sign(rfq, fromDID)
 	if err != nil {
 		return RFQ{}, fmt.Errorf("failed to sign rfq: %w", err)
 	}
@@ -166,7 +168,7 @@ func Payout(kind string, opts ...PaymentMethodOption) PayoutMethod {
 }
 
 func computeHash(salt string, data any) (string, error) {
-	byteArray, err := tbdex.DigestJSON([]any{salt, data})
+	byteArray, err := crypto.DigestJSON([]any{salt, data})
 	if err != nil {
 		return "", err
 	}
