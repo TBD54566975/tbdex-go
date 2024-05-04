@@ -33,9 +33,7 @@ type msg struct {
 // unmarshaling includes validation
 func DecodeMessage(input []byte) (Message, error) {
 	var m msg
-	err := json.Unmarshal(input, &m)
-
-	if err != nil {
+	if err := json.Unmarshal(input, &m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal partial message to determine kind: %w", err)
 	}
 
