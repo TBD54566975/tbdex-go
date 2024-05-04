@@ -26,12 +26,12 @@ type msg struct {
 	Metadata message.Metadata
 }
 
-// DecodeMessage unmarshals a message. It uses the metadata kind to determine the type of message.
+// UnmarshalMessage unmarshals a message. It uses the metadata kind to determine the type of message.
 //
 // # Note
 //
 // unmarshaling includes validation
-func DecodeMessage(input []byte) (Message, error) {
+func UnmarshalMessage(input []byte) (Message, error) {
 	var m msg
 	if err := json.Unmarshal(input, &m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal partial message to determine kind: %w", err)
