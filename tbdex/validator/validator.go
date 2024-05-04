@@ -1,4 +1,4 @@
-package tbdex
+package validator
 
 import (
 	"embed"

@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/message"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
+	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -13,13 +17,28 @@ import (
 // Kind is the value used within a message's metadata.kind
 const Kind = "order"
 
+// ValidNext returns the valid message kinds that can follow an order.
+func ValidNext() []string {
+	return []string{orderstatus.Kind, closemsg.Kind}
+}
+
 // Order represents a tbdex [order] message.
 //
 // [order]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#order
 type Order struct {
-	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
-	Data      Data                  `json:"data,omitempty"`
-	Signature string                `json:"signature,omitempty"`
+	Metadata  message.Metadata `json:"metadata,omitempty"`
+	Data      Data             `json:"data,omitempty"`
+	Signature string           `json:"signature,omitempty"`
+}
+
+// Kind returns the kind of message
+func (o Order) Kind() string {
+	return o.Metadata.Kind
+}
+
+// ValidNext returns the valid message kinds that can follow an order.
+func (o Order) ValidNext() []string {
+	return []string{orderstatus.Kind, closemsg.Kind}
 }
 
 // Data represents the data field of an order message.
@@ -30,7 +49,7 @@ type Data struct{}
 func (o Order) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": o.Metadata, "data": o.Data}
 
-	hashed, err := tbdex.DigestJSON(payload)
+	hashed, err := crypto.DigestJSON(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute order digest: %w", err)
 	}
@@ -40,7 +59,7 @@ func (o Order) Digest() ([]byte, error) {
 
 // Verify verifies the order's signature.
 func (o *Order) Verify() error {
-	decoded, err := tbdex.VerifySignature(o, o.Signature)
+	decoded, err := crypto.VerifySignature(o, o.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify order signature: %w", err)
 	}
@@ -54,7 +73,7 @@ func (o *Order) Verify() error {
 
 // UnmarshalJSON validates and unmarshals the input data into an Order.
 func (o *Order) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
+	err := validator.Validate(validator.TypeMessage, data, validator.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid order: %w", err)
 	}
@@ -135,7 +154,7 @@ func Create(fromDID did.BearerDID, to, exchangeID string, opts ...CreateOption) 
 	}
 
 	o := Order{
-		Metadata: tbdex.MessageMetadata{
+		Metadata: message.Metadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -148,7 +167,7 @@ func Create(fromDID did.BearerDID, to, exchangeID string, opts ...CreateOption) 
 		Data: Data{},
 	}
 
-	signature, err := tbdex.Sign(o, fromDID)
+	signature, err := crypto.Sign(o, fromDID)
 	if err != nil {
 		return Order{}, fmt.Errorf("failed to sign order: %w", err)
 	}

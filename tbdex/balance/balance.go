@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/resource"
+	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -15,9 +17,9 @@ const Kind = "balance"
 
 // Balance is a resource to communicate the amounts of each currency held by the PFI on behalf of its customer.
 type Balance struct {
-	Metadata  tbdex.ResourceMetadata `json:"metadata,omitempty"`
-	Data      Data                   `json:"data,omitempty"`
-	Signature string                 `json:"signature,omitempty"`
+	Metadata  resource.Metadata `json:"metadata,omitempty"`
+	Data      Data              `json:"data,omitempty"`
+	Signature string            `json:"signature,omitempty"`
 }
 
 // Data represents the data of a Balance.
@@ -38,7 +40,7 @@ func (id ID) Prefix() string { return Kind }
 func (b Balance) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": b.Metadata, "data": b.Data}
 
-	hashed, err := tbdex.DigestJSON(payload)
+	hashed, err := crypto.DigestJSON(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to digest balance: %w", err)
 	}
@@ -60,7 +62,7 @@ func Create(fromDID did.BearerDID, currencyCode, availableAmount string, opts ..
 	}
 
 	b := Balance{
-		Metadata: tbdex.ResourceMetadata{
+		Metadata: resource.Metadata{
 			From:      fromDID.URI,
 			Kind:      Kind,
 			ID:        o.id.String(),
@@ -74,7 +76,7 @@ func Create(fromDID did.BearerDID, currencyCode, availableAmount string, opts ..
 		},
 	}
 
-	signature, err := tbdex.Sign(b, fromDID)
+	signature, err := crypto.Sign(b, fromDID)
 	if err != nil {
 		return Balance{}, fmt.Errorf("failed to sign balance: %w", err)
 	}
@@ -110,7 +112,7 @@ func UpdatedAt(t time.Time) CreateOption {
 
 // UnmarshalJSON validates and unmarshals the input data into a Balance.
 func (b *Balance) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeResource, data, tbdex.WithKind(Kind))
+	err := validator.Validate(validator.TypeResource, data, validator.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid balance: %w", err)
 	}
@@ -128,7 +130,7 @@ func (b *Balance) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature of the Balance.
 func (b *Balance) Verify() error {
-	decoded, err := tbdex.VerifySignature(b, b.Signature)
+	decoded, err := crypto.VerifySignature(b, b.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify Balance signature: %w", err)
 	}

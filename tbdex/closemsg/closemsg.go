@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/message"
+	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -15,9 +17,19 @@ const Kind = "close"
 
 // Close represents a close message within the exchange.
 type Close struct {
-	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
-	Data      Data                  `json:"data,omitempty"`
-	Signature string                `json:"signature,omitempty"`
+	Metadata  message.Metadata `json:"metadata,omitempty"`
+	Data      Data             `json:"data,omitempty"`
+	Signature string           `json:"signature,omitempty"`
+}
+
+// Kind returns the kind of message.
+func (c Close) Kind() string {
+	return c.Metadata.Kind
+}
+
+// ValidNext returns the kinds of messages that can follow a close.
+func (c Close) ValidNext() []string {
+	return []string{}
 }
 
 // Data encapsulates the data content of a close.
@@ -30,7 +42,7 @@ type Data struct {
 func (c Close) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": c.Metadata, "data": c.Data}
 
-	hashed, err := tbdex.DigestJSON(payload)
+	hashed, err := crypto.DigestJSON(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to digest close: %w", err)
 	}
@@ -40,7 +52,7 @@ func (c Close) Digest() ([]byte, error) {
 
 // Verify verifies the signature of the Close.
 func (c *Close) Verify() error {
-	decoded, err := tbdex.VerifySignature(c, c.Signature)
+	decoded, err := crypto.VerifySignature(c, c.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify close signature: %w", err)
 	}
@@ -54,7 +66,7 @@ func (c *Close) Verify() error {
 
 // UnmarshalJSON validates and unmarshals the input data into a Close.
 func (c *Close) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
+	err := validator.Validate(validator.TypeMessage, data, validator.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid close: %w", err)
 	}
@@ -97,7 +109,7 @@ func Create(fromDID did.BearerDID, to, exchangeID string, opts ...CreateOption) 
 	}
 
 	c := Close{
-		Metadata: tbdex.MessageMetadata{
+		Metadata: message.Metadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -110,7 +122,7 @@ func Create(fromDID did.BearerDID, to, exchangeID string, opts ...CreateOption) 
 		Data: Data{Reason: o.reason, Success: o.success},
 	}
 
-	signature, err := tbdex.Sign(c, fromDID)
+	signature, err := crypto.Sign(c, fromDID)
 	if err != nil {
 		return Close{}, fmt.Errorf("failed to sign close: %w", err)
 	}

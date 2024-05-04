@@ -15,7 +15,7 @@ lint:
   @echo "Running linter..."
   @golangci-lint run
 
-# Copies JSON schemas from the tbdex submodule repo into the protocol dir.
+# Copies JSON schemas from the tbdex submodule repo into the validator dir.
 schemas:
   @git submodule update --init --recursive
-  @cp -r spec/hosted/json-schemas tbdex/
+  @cp -r spec/hosted/json-schemas tbdex/validator/

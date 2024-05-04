@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/message"
+	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -13,11 +17,26 @@ import (
 // Kind identifies this message kind
 const Kind = "quote"
 
+// ValidNext returns the valid message kinds that can follow a Quote.
+func ValidNext() []string {
+	return []string{order.Kind, closemsg.Kind}
+}
+
 // Quote represents a quote message within the exchange.
 type Quote struct {
-	Metadata  tbdex.MessageMetadata `json:"metadata,omitempty"`
-	Data      Data                  `json:"data,omitempty"`
-	Signature string                `json:"signature,omitempty"`
+	Metadata  message.Metadata `json:"metadata,omitempty"`
+	Data      Data             `json:"data,omitempty"`
+	Signature string           `json:"signature,omitempty"`
+}
+
+// Kind returns the kind of message
+func (q Quote) Kind() string {
+	return Kind
+}
+
+// ValidNext returns the valid message kinds that can follow a Quote.
+func (q Quote) ValidNext() []string {
+	return ValidNext()
 }
 
 // Data encapsulates the data content of a  quote.
@@ -45,7 +64,7 @@ type PaymentInstruction struct {
 func (q Quote) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": q.Metadata, "data": q.Data}
 
-	hashed, err := tbdex.DigestJSON(payload)
+	hashed, err := crypto.DigestJSON(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to digest quote: %w", err)
 	}
@@ -55,7 +74,7 @@ func (q Quote) Digest() ([]byte, error) {
 
 // Verify verifies the signature of the quote.
 func (q *Quote) Verify() error {
-	decoded, err := tbdex.VerifySignature(q, q.Signature)
+	decoded, err := crypto.VerifySignature(q, q.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify quote signature: %w", err)
 	}
@@ -69,7 +88,7 @@ func (q *Quote) Verify() error {
 
 // UnmarshalJSON validates and unmarshals the input data into an Quote.
 func (q *Quote) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeMessage, data, tbdex.WithKind(Kind))
+	err := validator.Validate(validator.TypeMessage, data, validator.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid quote: %w", err)
 	}
@@ -112,7 +131,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payo
 	}
 
 	quote := Quote{
-		Metadata: tbdex.MessageMetadata{
+		Metadata: message.Metadata{
 			From:       fromDID.URI,
 			To:         to,
 			Kind:       Kind,
@@ -125,7 +144,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payo
 		Data: Data{ExpiresAt: expiresAt, Payin: payin, Payout: payout},
 	}
 
-	signature, err := tbdex.Sign(quote, fromDID)
+	signature, err := crypto.Sign(quote, fromDID)
 	if err != nil {
 		return Quote{}, fmt.Errorf("failed to sign quote: %w", err)
 	}

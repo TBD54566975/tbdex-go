@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/resource"
+	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
 )
@@ -14,9 +16,9 @@ const Kind = "offering"
 
 // Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 type Offering struct {
-	Metadata  tbdex.ResourceMetadata `json:"metadata,omitempty"`
-	Data      Data                   `json:"data,omitempty"`
-	Signature string                 `json:"signature,omitempty"`
+	Metadata  resource.Metadata `json:"metadata,omitempty"`
+	Data      Data              `json:"data,omitempty"`
+	Signature string            `json:"signature,omitempty"`
 }
 
 // Data represents the data of an Offering.
@@ -88,7 +90,7 @@ func (id ID) Prefix() string { return Kind }
 func (o Offering) Digest() ([]byte, error) {
 	payload := map[string]any{"metadata": o.Metadata, "data": o.Data}
 
-	hashed, err := tbdex.DigestJSON(payload)
+	hashed, err := crypto.DigestJSON(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to digest offering: %w", err)
 	}
@@ -98,7 +100,7 @@ func (o Offering) Digest() ([]byte, error) {
 
 // UnmarshalJSON validates and unmarshals the input data into an Offering.
 func (o *Offering) UnmarshalJSON(data []byte) error {
-	err := tbdex.Validate(tbdex.TypeResource, data, tbdex.WithKind(Kind))
+	err := validator.Validate(validator.TypeResource, data, validator.WithKind(Kind))
 	if err != nil {
 		return fmt.Errorf("invalid offering: %w", err)
 	}
@@ -116,7 +118,7 @@ func (o *Offering) UnmarshalJSON(data []byte) error {
 
 // Verify verifies the signature of the Offering.
 func (o *Offering) Verify() error {
-	decoded, err := tbdex.VerifySignature(o, o.Signature)
+	decoded, err := crypto.VerifySignature(o, o.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify Offering signature: %w", err)
 	}

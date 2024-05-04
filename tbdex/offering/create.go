@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
+	"github.com/TBD54566975/tbdex-go/tbdex/resource"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
@@ -39,7 +40,7 @@ func Create(fromDID did.BearerDID, payin *PayinDetails, payout *PayoutDetails, r
 	}
 
 	offering := Offering{
-		Metadata: tbdex.ResourceMetadata{
+		Metadata: resource.Metadata{
 			From:      fromDID.URI,
 			Kind:      Kind,
 			ID:        o.id.String(),
@@ -56,7 +57,7 @@ func Create(fromDID did.BearerDID, payin *PayinDetails, payout *PayoutDetails, r
 		},
 	}
 
-	signature, err := tbdex.Sign(offering, fromDID)
+	signature, err := crypto.Sign(offering, fromDID)
 	if err != nil {
 		return Offering{}, fmt.Errorf("failed to sign offering: %w", err)
 	}
