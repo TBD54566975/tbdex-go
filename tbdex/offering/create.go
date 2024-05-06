@@ -168,6 +168,7 @@ func Description(d string) CreateOption {
 	}
 }
 
+// From can be passed to [Create] in order to create and sign the offering in one fell swoop
 func From(d did.BearerDID) CreateOption {
 	return func(o *createOptions) {
 		o.from = &d
