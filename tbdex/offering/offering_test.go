@@ -16,7 +16,6 @@ func TestCreate(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = offering.Create(
-		pfiDID,
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
@@ -26,6 +25,7 @@ func TestCreate(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"1.0",
+		offering.From(pfiDID),
 	)
 
 	assert.NoError(t, err)
@@ -36,7 +36,6 @@ func TestSign(t *testing.T) {
 	assert.NoError(t, err)
 
 	offering, err := offering.Create(
-		bearerDID,
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
@@ -46,6 +45,7 @@ func TestSign(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"1.0",
+		offering.From(bearerDID),
 	)
 	assert.NoError(t, err)
 	assert.NotZero(t, offering.Signature)
@@ -56,7 +56,6 @@ func TestUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	o, err := offering.Create(
-		bearerDID,
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
@@ -82,6 +81,7 @@ func TestUnmarshal(t *testing.T) {
 			)},
 		),
 		"1.0",
+		offering.From(bearerDID),
 	)
 
 	assert.NoError(t, err)
@@ -117,7 +117,6 @@ func TestVerify(t *testing.T) {
 	assert.NoError(t, err)
 
 	o, err := offering.Create(
-		bearerDID,
 		offering.NewPayin(
 			"BTC",
 			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
@@ -127,6 +126,7 @@ func TestVerify(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"60000.00",
+		offering.From(bearerDID),
 	)
 
 	assert.NoError(t, err)
@@ -140,7 +140,6 @@ func TestVerify_InvalidSignature(t *testing.T) {
 	assert.NoError(t, err)
 
 	o, err := offering.Create(
-		bearerDID,
 		offering.NewPayin(
 			"BTC",
 			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
@@ -150,6 +149,7 @@ func TestVerify_InvalidSignature(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"60000.00",
+		offering.From(bearerDID),
 	)
 
 	assert.NoError(t, err)
@@ -165,7 +165,6 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	wrongDID, _ := didjwk.Create()
 
 	o, err := offering.Create(
-		bearerDID,
 		offering.NewPayin(
 			"BTC",
 			[]offering.PayinMethod{offering.NewPayinMethod("BTC_ADDRESS")},
@@ -175,6 +174,7 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"60000.00",
+		offering.From(bearerDID),
 	)
 
 	assert.NoError(t, err)
