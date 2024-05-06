@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
 	"github.com/TBD54566975/tbdex-go/tbdex/resource"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/pexv2"
@@ -18,7 +17,7 @@ import (
 // An Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 //
 // [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#offering
-func Create(fromDID did.BearerDID, payin *PayinDetails, payout *PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
+func Create(payin *PayinDetails, payout *PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
 	o := createOptions{
 		id:          typeid.Must(typeid.New[ID]()),
 		createdAt:   time.Now(),
@@ -41,7 +40,6 @@ func Create(fromDID did.BearerDID, payin *PayinDetails, payout *PayoutDetails, r
 
 	offering := Offering{
 		Metadata: resource.Metadata{
-			From:      fromDID.URI,
 			Kind:      Kind,
 			ID:        o.id.String(),
 			CreatedAt: o.createdAt.UTC().Format(time.RFC3339),
@@ -57,12 +55,11 @@ func Create(fromDID did.BearerDID, payin *PayinDetails, payout *PayoutDetails, r
 		},
 	}
 
-	signature, err := crypto.Sign(offering, fromDID)
-	if err != nil {
-		return Offering{}, fmt.Errorf("failed to sign offering: %w", err)
+	if o.from != nil {
+		if err := offering.Sign(*o.from); err != nil {
+			return Offering{}, err
+		}
 	}
-
-	offering.Signature = signature
 
 	return offering, nil
 }
@@ -137,6 +134,7 @@ type createOptions struct {
 	description    string
 	protocol       string
 	requiredClaims *pexv2.PresentationDefinition
+	from           *did.BearerDID
 }
 
 // CreateOption implements functional options pattern for [Create].
@@ -167,6 +165,12 @@ func UpdatedAt(t time.Time) CreateOption {
 func Description(d string) CreateOption {
 	return func(o *createOptions) {
 		o.description = d
+	}
+}
+
+func From(d did.BearerDID) CreateOption {
+	return func(o *createOptions) {
+		o.from = &d
 	}
 }
 
