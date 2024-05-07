@@ -27,12 +27,12 @@ func (c Close) GetMetadata() message.Metadata {
 	return c.Metadata
 }
 
-// Kind returns the kind of message.
+// GetKind returns the kind of message.
 func (c Close) GetKind() string {
 	return c.Metadata.Kind
 }
 
-// ValidNext returns the kinds of messages that can follow a close.
+// GetValidNext returns the kinds of messages that can follow a close.
 func (c Close) GetValidNext() []string {
 	return []string{}
 }

@@ -34,12 +34,12 @@ func (q Quote) GetMetadata() message.Metadata {
 	return q.Metadata
 }
 
-// Kind returns the kind of message
+// GetKind returns the kind of message
 func (q Quote) GetKind() string {
 	return Kind
 }
 
-// ValidNext returns the valid message kinds that can follow a Quote.
+// GetValidNext returns the valid message kinds that can follow a Quote.
 func (q Quote) GetValidNext() []string {
 	return ValidNext()
 }

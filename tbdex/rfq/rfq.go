@@ -34,12 +34,12 @@ func (r RFQ) GetMetadata() message.Metadata {
 	return r.Metadata
 }
 
-// Kind returns the kind of message
+// GetKind returns the kind of message
 func (r RFQ) GetKind() string {
 	return Kind
 }
 
-// ValidNext returns the valid message kinds that can follow a RFQ.
+// GetValidNext returns the valid message kinds that can follow a RFQ.
 func (r RFQ) GetValidNext() []string {
 	return ValidNext()
 }

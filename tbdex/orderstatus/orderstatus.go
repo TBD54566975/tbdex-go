@@ -33,12 +33,12 @@ func (os OrderStatus) GetMetadata() message.Metadata {
 	return os.Metadata
 }
 
-// Kind returns the kind of message
+// GetKind returns the kind of message
 func (os OrderStatus) GetKind() string {
 	return os.Metadata.Kind
 }
 
-// ValidNext returns the valid next message kinds that can follow an orderstatus
+// GetValidNext returns the valid next message kinds that can follow an orderstatus
 func (os OrderStatus) GetValidNext() []string {
 	return []string{Kind, closemsg.Kind}
 }
