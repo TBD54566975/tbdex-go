@@ -14,9 +14,10 @@ import (
 // Message is the interface that all tbdex messages implement. Especially useful for decoding and parsing messages
 // when the kind of message is not known upfront.
 type Message interface {
-	ValidNext() []string
-	Kind() string
 	Digest() ([]byte, error)
+	GetValidNext() []string
+	GetKind() string
+	GetMetadata() message.Metadata
 	// TODO: uncomment these once rfq has been refactored to separate privateStrict bool
 	// Verify() error
 	// Parse([]byte) (Message, error)

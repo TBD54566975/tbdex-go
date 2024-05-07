@@ -29,13 +29,18 @@ type Quote struct {
 	Signature string           `json:"signature,omitempty"`
 }
 
-// Kind returns the kind of message
-func (q Quote) Kind() string {
+// GetMetadata returns the metadata of the message
+func (q Quote) GetMetadata() message.Metadata {
+	return q.Metadata
+}
+
+// GetKind returns the kind of message
+func (q Quote) GetKind() string {
 	return Kind
 }
 
-// ValidNext returns the valid message kinds that can follow a Quote.
-func (q Quote) ValidNext() []string {
+// GetValidNext returns the valid message kinds that can follow a Quote.
+func (q Quote) GetValidNext() []string {
 	return ValidNext()
 }
 

@@ -31,13 +31,18 @@ type Order struct {
 	Signature string           `json:"signature,omitempty"`
 }
 
-// Kind returns the kind of message
-func (o Order) Kind() string {
+// GetMetadata returns the metadata of the message
+func (o Order) GetMetadata() message.Metadata {
+	return o.Metadata
+}
+
+// GetKind returns the kind of message
+func (o Order) GetKind() string {
 	return o.Metadata.Kind
 }
 
-// ValidNext returns the valid message kinds that can follow an order.
-func (o Order) ValidNext() []string {
+// GetValidNext returns the valid message kinds that can follow an order.
+func (o Order) GetValidNext() []string {
 	return []string{orderstatus.Kind, closemsg.Kind}
 }
 
