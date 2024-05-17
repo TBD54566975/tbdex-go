@@ -7,6 +7,7 @@ import (
 	libclose "github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
 	liborder "github.com/TBD54566975/tbdex-go/tbdex/order"
+	liborderstatus "github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	libquote "github.com/TBD54566975/tbdex-go/tbdex/quote"
 	librfq "github.com/TBD54566975/tbdex-go/tbdex/rfq"
 )
@@ -61,6 +62,14 @@ func UnmarshalMessage(input []byte) (Message, error) {
 		}
 
 		return order, nil
+
+	case liborderstatus.Kind:
+		var orderStatus liborderstatus.OrderStatus
+		if err := json.Unmarshal(input, &orderStatus); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal order: %w", err)
+		}
+
+		return orderStatus, nil
 	case libclose.Kind:
 		var closemsg libclose.Close
 		if err := json.Unmarshal(input, &closemsg); err != nil {
@@ -110,6 +119,14 @@ func ParseMessage(input []byte) (Message, error) {
 		}
 
 		return order, nil
+
+	case liborderstatus.Kind:
+		var orderStatus liborderstatus.OrderStatus
+		if err := json.Unmarshal(input, &orderStatus); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal order: %w", err)
+		}
+
+		return orderStatus, nil
 
 	case libclose.Kind:
 		closemsg, err := libclose.Parse(input)
