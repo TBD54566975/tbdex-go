@@ -78,6 +78,7 @@ func (r *RFQ) Verify() error {
 }
 
 // Scrub verifies the private data and returns an RFQ without private data for storage, as well as private data for separate processing
+// todo: allow passing in custom type for PrivateData.Payin and PrivateData.Payout when PrivateData is genericized. https://github.com/TBD54566975/tbdex-go/issues/50
 func (r *RFQ) Scrub() (RFQ, PrivateData, error) {
 
 	err := r.verifyPrivateData()
