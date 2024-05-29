@@ -62,8 +62,8 @@ func (r *RFQ) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Verify verifies the signature and private data hashes of the RFQ.
-func (r *RFQ) Verify(privateDataStrict bool) error {
+// Verify verifies the signature of the RFQ.
+func (r *RFQ) Verify() error {
 	decoded, err := crypto.VerifySignature(r, r.Signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify RFQ signature: %w", err)
@@ -73,22 +73,41 @@ func (r *RFQ) Verify(privateDataStrict bool) error {
 		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, r.Metadata.From)
 	}
 
-	err = r.verifyPrivateData(privateDataStrict)
-	if err != nil {
-		return fmt.Errorf("failed to verify private data: %w", err)
-	}
 
 	return nil
 }
 
+// Scrub verifies the private data and returns an RFQ without private data for storage, as well as private data for separate processing
+func (r *RFQ) Scrub() (RFQ, PrivateData, error) {
+
+	err := r.verifyPrivateData()
+	if err != nil {
+		return RFQ{}, PrivateData{}, fmt.Errorf("failed to verify private data: %w", err)
+	}
+
+	privateData := *r.PrivateData
+
+	// copy rfq
+	r.PrivateData = nil
+
+	scrubbed := RFQ{
+		Metadata:  r.Metadata,
+		Data:      r.Data,
+		Signature: r.Signature,
+	}
+
+	return scrubbed, privateData, nil
+
+}
+
 // Parse validates, parses input data into an RFQ, and verifies the signature and private data.
-func Parse(data []byte, privateDataStrict bool) (RFQ, error) {
+func Parse(data []byte) (RFQ, error) {
 	r := RFQ{}
 	if err := json.Unmarshal(data, &r); err != nil {
 		return RFQ{}, fmt.Errorf("failed to unmarshal RFQ: %w", err)
 	}
 
-	if err := r.Verify(privateDataStrict); err != nil {
+	if err := r.Verify(); err != nil {
 		return RFQ{}, fmt.Errorf("failed to verify RFQ: %w", err)
 	}
 
@@ -107,47 +126,39 @@ func (r RFQ) Digest() ([]byte, error) {
 	return hashed, nil
 }
 
-func (r *RFQ) verifyPrivateData(strict bool) error {
-	if !strict && r.PrivateData == nil {
-		return nil
+func (r *RFQ) verifyPrivateData() error {
+	if r.PrivateData == nil {
+		return errors.New("private data is missing")
 	}
 
 	if r.Data.ClaimsHash != "" {
-		if strict && len(r.PrivateData.Claims) == 0 {
-			return errors.New("strict verification: claims hash is set but claims are missing")
-
+		if len(r.PrivateData.Claims) == 0 {
+			return errors.New("verification: claims hash is set but claims are missing")
 		}
-		if len(r.PrivateData.Claims) != 0 {
-			payload := []any{r.PrivateData.Salt, r.PrivateData.Claims}
-			if err := crypto.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
-				return fmt.Errorf("failed to verify claims: %w", err)
-			}
+		payload := []any{r.PrivateData.Salt, r.PrivateData.Claims}
+		if err := crypto.VerifyDigest(r.Data.ClaimsHash, payload); err != nil {
+			return fmt.Errorf("failed to verify claims: %w", err)
 		}
 	}
 
 	if r.Data.Payin.PaymentDetailsHash != "" {
-		if strict && (r.PrivateData.Payin.PaymentDetails == nil) {
-			return errors.New("strict verification: payin details hash is set but payin details are missing")
+		if r.PrivateData.Payin.PaymentDetails == nil {
+			return errors.New("verification: payin details hash is set but payin details are missing")
 
 		}
-		if r.PrivateData.Payin.PaymentDetails != nil {
-			payload := []any{r.PrivateData.Salt, r.PrivateData.Payin.PaymentDetails}
-			if err := crypto.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
-				return fmt.Errorf("failed to verify payin: %w", err)
-			}
+		payload := []any{r.PrivateData.Salt, r.PrivateData.Payin.PaymentDetails}
+		if err := crypto.VerifyDigest(r.Data.Payin.PaymentDetailsHash, payload); err != nil {
+			return fmt.Errorf("failed to verify payin: %w", err)
 		}
 	}
 
 	if r.Data.Payout.PaymentDetailsHash != "" {
-		if strict && (r.PrivateData.Payout.PaymentDetails == nil) {
-			return errors.New("strict verification: payout details hash is set but payout details are missing")
-
+		if r.PrivateData.Payout.PaymentDetails == nil {
+			return errors.New("verification: payout details hash is set but payout details are missing")
 		}
-		if r.PrivateData.Payout.PaymentDetails != nil {
-			payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
-			if err := crypto.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
-				return fmt.Errorf("failed to verify payout: %w", err)
-			}
+		payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
+		if err := crypto.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
+			return fmt.Errorf("failed to verify payout: %w", err)
 		}
 	}
 
