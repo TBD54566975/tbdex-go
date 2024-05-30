@@ -99,7 +99,7 @@ func ParseMessage(input []byte) (Message, error) {
 	switch m.Metadata.Kind {
 	case librfq.Kind:
 
-		rfq, err := librfq.Parse(input, false)
+		rfq, err := librfq.Parse(input)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse rfq: %w", err)
 		}

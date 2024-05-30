@@ -116,7 +116,7 @@ func TestUnmarshal_Invalid(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestVerify_NoPrivateDataStrict(t *testing.T) {
+func TestScrub_FailsNoPrivateData(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -136,35 +136,13 @@ func TestVerify_NoPrivateDataStrict(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(true)
+	err = rfq.Verify()
 	assert.NoError(t, err)
+	_, _, err = rfq.Scrub()
+	assert.Error(t, err)
 }
 
-func TestVerify_NoPrivateDataNotStrict(t *testing.T) {
-	pfiDID, _ := didjwk.Create()
-	walletDID, _ := didjwk.Create()
-	offeringID, _ := typeid.WithPrefix(offering.Kind)
-
-	r, _ := rfq.Create(
-		walletDID,
-		pfiDID.URI,
-		offeringID.String(),
-		rfq.Payin("100", "STORED_BALANCE"),
-		rfq.Payout("BANK_ACCOUNT"),
-	)
-
-	bytes, err := json.Marshal(r)
-	assert.NoError(t, err)
-
-	var rfq rfq.RFQ
-	err = json.Unmarshal(bytes, &rfq)
-	assert.NoError(t, err)
-
-	err = rfq.Verify(false)
-	assert.NoError(t, err)
-}
-
-func TestVerify_FailsClaimsHashMismatch(t *testing.T) {
+func TestScrub_FailsClaimsHashMismatch(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -187,11 +165,13 @@ func TestVerify_FailsClaimsHashMismatch(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(false)
+	err = rfq.Verify()
+	assert.NoError(t, err)
+	_, _, err = rfq.Scrub()
 	assert.Error(t, err)
 }
 
-func TestVerify_FailsPayoutHashMismatch(t *testing.T) {
+func TestScrub_FailsPayoutHashMismatch(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -221,11 +201,13 @@ func TestVerify_FailsPayoutHashMismatch(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(false)
+	err = rfq.Verify()
+	assert.NoError(t, err)
+	_, _, err = rfq.Scrub()
 	assert.Error(t, err)
 }
 
-func TestVerify_FailsPayinHashMismatch(t *testing.T) {
+func TestScrub_FailsPayinHashMismatch(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -255,11 +237,13 @@ func TestVerify_FailsPayinHashMismatch(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(false)
+	err = rfq.Verify()
+	assert.NoError(t, err)
+	_, _, err = rfq.Scrub()
 	assert.Error(t, err)
 }
 
-func TestVerify_ClaimsPrivateDataStrict(t *testing.T) {
+func TestScrub_ClaimsPrivateData(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -284,11 +268,13 @@ func TestVerify_ClaimsPrivateDataStrict(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(true)
+	err = rfq.Verify()
+	assert.NoError(t, err)
+	_, _, err = rfq.Scrub()
 	assert.NoError(t, err)
 }
 
-func TestVerify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
+func TestScrub_FailsMissingDataForClaimsHash(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -311,38 +297,13 @@ func TestVerify_FailsMissingDataForClaimsHashStrict(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(true)
+	err = rfq.Verify()
+	assert.NoError(t, err)
+	_, _, err = rfq.Scrub()
 	assert.Error(t, err)
 }
 
-func TestVerify_PassesMissingDataForClaimsHashNotStrict(t *testing.T) {
-	pfiDID, _ := didjwk.Create()
-	walletDID, _ := didjwk.Create()
-	offeringID, _ := typeid.WithPrefix(offering.Kind)
-
-	r, _ := rfq.Create(
-		walletDID,
-		pfiDID.URI,
-		offeringID.String(),
-		rfq.Payin("100", "STORED_BALANCE"),
-		rfq.Payout("BANK_ACCOUNT"),
-		rfq.Claims([]string{"my_jwt"}),
-	)
-
-	r.PrivateData.Claims = nil
-
-	bytes, err := json.Marshal(r)
-	assert.NoError(t, err)
-
-	var rfq rfq.RFQ
-	err = json.Unmarshal(bytes, &rfq)
-	assert.NoError(t, err)
-
-	err = rfq.Verify(false)
-	assert.NoError(t, err)
-}
-
-func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
+func TestScrub_FailsMissingDataForPayoutHash(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 	offeringID, _ := typeid.WithPrefix(offering.Kind)
@@ -368,38 +329,10 @@ func TestVerify_FailsMissingDataForPayoutHashStrict(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(true)
+	err = rfq.Verify()
+	assert.NoError(t, err)
+	_, _, err = rfq.Scrub()
 	assert.Error(t, err)
-}
-
-func TestVerify_PassesMissingDataForPayoutHashNotStrict(t *testing.T) {
-	pfiDID, _ := didjwk.Create()
-	walletDID, _ := didjwk.Create()
-	offeringID, _ := typeid.WithPrefix(offering.Kind)
-
-	r, _ := rfq.Create(
-		walletDID,
-		pfiDID.URI,
-		offeringID.String(),
-		rfq.Payin("100", "STORED_BALANCE"),
-		rfq.Payout("BANK_ACCOUNT", rfq.PaymentDetails(
-			map[string]any{
-				"accountNumber": "1234567890123456",
-				"routingNumber": "123456789",
-			})),
-	)
-
-	r.PrivateData.Payout.PaymentDetails = nil
-
-	bytes, err := json.Marshal(r)
-	assert.NoError(t, err)
-
-	var rfq rfq.RFQ
-	err = json.Unmarshal(bytes, &rfq)
-	assert.NoError(t, err)
-
-	err = rfq.Verify(false)
-	assert.NoError(t, err)
 }
 
 func TestVerify_FailsBadSignature(t *testing.T) {
@@ -429,7 +362,7 @@ func TestVerify_FailsBadSignature(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(false)
+	err = rfq.Verify()
 	assert.Error(t, err)
 }
 
@@ -455,7 +388,7 @@ func TestVerify_InvalidSignature(t *testing.T) {
 	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = rfq.Verify(true)
+	err = rfq.Verify()
 	assert.Error(t, err)
 }
 
@@ -484,11 +417,11 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	bytes, err := json.Marshal(r)
 	assert.NoError(t, err)
 
-	var RFQ rfq.RFQ
-	err = json.Unmarshal(bytes, &RFQ)
+	var rfq rfq.RFQ
+	err = json.Unmarshal(bytes, &rfq)
 	assert.NoError(t, err)
 
-	err = RFQ.Verify(true)
+	err = rfq.Verify()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "does not match message metadata from")
 }
