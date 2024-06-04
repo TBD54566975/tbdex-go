@@ -3,6 +3,7 @@ package rfq_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
@@ -424,4 +425,34 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	err = rfq.Verify()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "does not match message metadata from")
+}
+
+func TestVerifyOfferingRequirements_t(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+
+	offering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
+	)
+	assert.NoError(t, err)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		offering.Metadata.ID,
+		rfq.Payin("100", "SQUAREPAY"),
+		rfq.Payout("STORED_BALANCE"),
+	)
+
+	err = r.VerifyOfferingRequirements(offering)
+	assert.NoError(t, err)
 }

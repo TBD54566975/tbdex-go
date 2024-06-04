@@ -5,12 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
+	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/validator"
+	"github.com/tbd54566975/web5-go/pexv2"
+	"github.com/tbd54566975/web5-go/vc"
+
+	// jsonschema "github.com/xeipuuv/gojsonschema" // todo remove this one
+	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 // Kind identifies this message kind
@@ -72,7 +80,6 @@ func (r *RFQ) Verify() error {
 	if decoded.SignerDID.URI != r.Metadata.From {
 		return fmt.Errorf("signer: %s does not match message metadata from: %s", decoded.SignerDID.URI, r.Metadata.From)
 	}
-
 
 	return nil
 }
@@ -160,6 +167,186 @@ func (r *RFQ) verifyPrivateData() error {
 		payload := []any{r.PrivateData.Salt, r.PrivateData.Payout.PaymentDetails}
 		if err := crypto.VerifyDigest(r.Data.Payout.PaymentDetailsHash, payload); err != nil {
 			return fmt.Errorf("failed to verify payout: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (r *RFQ) VerifyOfferingRequirements(offering offering.Offering) error {
+	if offering.Metadata.Protocol != r.Metadata.Protocol {
+		return fmt.Errorf("protocol version mismatch. (rfq) %s != %s (offering)", r.Metadata.Protocol, offering.Metadata.Protocol)
+	}
+
+	if offering.Metadata.ID != r.Data.OfferingID {
+		return fmt.Errorf("offering ID mismatch. (rfq) %s != %s (offering)", r.Data.OfferingID, offering.Metadata.ID)
+	}
+
+	// Verifying payin amount is less than maximum
+	payinAmount, err := strconv.ParseFloat(r.Data.Payin.Amount, 64)
+	if err != nil {
+		return fmt.Errorf("failed to parse payin amount: %w", err)
+	}
+
+	if offering.Data.Payin.Max != "" {
+		maxAmount, err := strconv.ParseFloat(offering.Data.Payin.Max, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse offering payin max amount: %w", err)
+		}
+
+		if payinAmount > maxAmount {
+			return fmt.Errorf("payin amount exceeds maximum. %f > %f", payinAmount, maxAmount)
+		}
+	}
+
+	// Verify payin amount is greater than minimum
+	if offering.Data.Payin.Min != "" {
+		minAmount, err := strconv.ParseFloat(offering.Data.Payin.Min, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse offering payin min amount: %w", err)
+		}
+
+		if payinAmount < minAmount {
+			return fmt.Errorf("rfq payinAmount is below offering's minAmount. (rfq) %s < %s (offering)", r.Data.Payin.Amount, offering.Data.Payin.Min)
+		}
+	}
+
+	if r.PrivateData != nil {
+
+		// Verify payin method
+		err = r.verifyPaymentMethod(
+			r.Data.Payin.Kind,
+			r.Data.Payin.PaymentDetailsHash,
+			r.PrivateData.Payin.PaymentDetails,
+			convertPayinMethods(offering.Data.Payin.Methods),
+			"payin",
+		)
+		if err != nil {
+			return fmt.Errorf("failed to verify payin method: %w", err)
+		}
+
+		// Verify payout method
+		err = r.verifyPaymentMethod(
+			r.Data.Payout.Kind,
+			r.Data.Payout.PaymentDetailsHash,
+			r.PrivateData.Payout.PaymentDetails,
+			convertPayoutMethods(offering.Data.Payout.Methods),
+			"payout",
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to verify payout method: %w", err)
+		}
+
+	}
+
+	err = r.verifyClaims(offering)
+	if err != nil {
+		return fmt.Errorf("failed to verify claims: %w", err)
+	}
+
+	return nil
+
+}
+
+func convertPayinMethods(payinMethods []offering.PayinMethod) []offering.PaymentMethod {
+	paymentMethods := make([]offering.PaymentMethod, len(payinMethods))
+	for i, method := range payinMethods {
+		paymentMethods[i] = method
+	}
+	return paymentMethods
+}
+
+func convertPayoutMethods(payoutMethods []offering.PayoutMethod) []offering.PaymentMethod {
+	paymentMethods := make([]offering.PaymentMethod, len(payoutMethods))
+	for i, method := range payoutMethods {
+		paymentMethods[i] = method
+	}
+	return paymentMethods
+}
+
+func (r *RFQ) verifyPaymentMethod(
+	selectedPaymentKind string,
+	selectedPaymentDetailsHash string,
+	selectedPaymentDetails map[string]interface{},
+	offeringPaymentMethods []offering.PaymentMethod,
+	payDirection string,
+) error {
+	// Filter allowed payment methods by selectedPaymentKind
+	var allowedPaymentMethods []offering.PaymentMethod
+	for _, paymentMethod := range offeringPaymentMethods {
+		if paymentMethod.GetKind() == selectedPaymentKind {
+			allowedPaymentMethods = append(allowedPaymentMethods, paymentMethod)
+		}
+	}
+
+	// If no matching payment methods are found, throw an error
+	if len(allowedPaymentMethods) == 0 {
+		var paymentMethodKinds []string
+		for _, paymentMethod := range offeringPaymentMethods {
+			paymentMethodKinds = append(paymentMethodKinds, paymentMethod.GetKind())
+		}
+		return fmt.Errorf(
+			"offering does not support rfq's %sMethod kind. (rfq) %s was not found in: [%s] (offering)",
+			payDirection, selectedPaymentKind, strings.Join(paymentMethodKinds, ", "),
+		)
+	}
+
+	for _, paymentMethod := range allowedPaymentMethods {
+		if paymentMethod.GetRequiredPaymentDetails() == nil {
+			// If requiredPaymentDetails is omitted, and selectedPaymentDetailsHash is also omitted, we have a match
+			if selectedPaymentDetailsHash == "" {
+				return nil
+			}
+
+			// selectedPaymentDetailsHash is present even though requiredPaymentDetails is omitted.
+			return fmt.Errorf("rfq paymentDetails must be omitted when offering requiredPaymentDetails is omitted")
+
+		} else {
+			// requiredPaymentDetails is present, so Rfq's payment details must match
+			sch, err := json.Marshal(paymentMethod.GetRequiredPaymentDetails())
+			if err != nil {
+				return fmt.Errorf("failed to marshal requiredPaymentDetails: %w", err)
+			}
+
+			schema, err := jsonschema.CompileString("id", string(sch))
+			if err != nil {
+				return fmt.Errorf("failed to compile requiredPaymentDetails schema: %w", err)
+			}
+
+			err = schema.Validate(selectedPaymentDetails)
+			if err != nil {
+				return fmt.Errorf("failed to validate %sMethod's paymentDetails: %w", payDirection, err)
+			}
+			// no error from requiredPaymentDetails schema validation against selectedPaymentDetails, we have a match
+			return nil
+		}
+	}
+
+	return nil
+
+}
+
+func (r *RFQ) verifyClaims(offering offering.Offering) error {
+	if offering.Data.RequiredClaims == nil {
+		return nil
+	}
+
+	credentials, err := pexv2.SelectCredentials(r.PrivateData.Claims, *offering.Data.RequiredClaims)
+
+	if err != nil {
+		return fmt.Errorf("failed to select credentials: %w", err)
+	}
+
+	if len(credentials) == 0 {
+		return fmt.Errorf("claims do not fulfill the offering's requirements")
+	}
+
+	for _, cred := range credentials {
+		_, err = vc.Verify[vc.Claims](cred)
+
+		if err != nil {
+			return fmt.Errorf("failed to verify credential: %w", err)
 		}
 	}
 

@@ -47,9 +47,30 @@ type PayoutDetails struct {
 	Methods      []PayoutMethod `json:"methods,omitempty"`
 }
 
+type PaymentMethod interface {
+	GetKind() string
+	GetRequiredPaymentDetails() json.RawMessage
+}
+
+func (pm PayinMethod) GetKind() string {
+    return pm.Kind
+}
+
+func (pm PayinMethod) GetRequiredPaymentDetails() json.RawMessage {
+    return pm.RequiredPaymentDetails
+}
+
+func (pm PayoutMethod) GetKind() string {
+    return pm.Kind
+}
+
+func (pm PayoutMethod) GetRequiredPaymentDetails() json.RawMessage {
+    return pm.RequiredPaymentDetails
+}
+
 // PayinMethod represents a single payment option on an Offering.
 type PayinMethod struct {
-	Kind                   string          `json:"kind,omitmempty"`
+	Kind                   string          `json:"kind,omitempty"`
 	Name                   string          `json:"name,omitempty"`
 	Description            string          `json:"description,omitempty"`
 	Group                  string          `json:"group,omitempty"`
