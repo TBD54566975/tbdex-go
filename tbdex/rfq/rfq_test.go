@@ -427,7 +427,7 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	assert.Contains(t, err.Error(), "does not match message metadata from")
 }
 
-func TestVerifyOfferingRequirements_t(t *testing.T) {
+func TestVerifyOfferingRequirements_Pass(t *testing.T) {
 	pfiDID, _ := didjwk.Create()
 	walletDID, _ := didjwk.Create()
 
@@ -455,4 +455,216 @@ func TestVerifyOfferingRequirements_t(t *testing.T) {
 
 	err = r.VerifyOfferingRequirements(offering)
 	assert.NoError(t, err)
+}
+
+func TestVerifyOfferingRequirements_OfferingIdMismatch(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+
+	offering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
+	)
+	assert.NoError(t, err)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		"wrong_offering_id",
+		rfq.Payin("100", "SQUAREPAY"),
+		rfq.Payout("STORED_BALANCE"),
+	)
+
+	err = r.VerifyOfferingRequirements(offering)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "offering ID mismatch")
+}
+
+func TestVerifyOfferingRequirements_PayinMoreThanMax(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+
+	offering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+			offering.Max("100"),
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
+	)
+	assert.NoError(t, err)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		offering.Metadata.ID,
+		rfq.Payin("99999", "SQUAREPAY"),
+		rfq.Payout("STORED_BALANCE"),
+	)
+
+	err = r.VerifyOfferingRequirements(offering)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "payin amount exceeds maximum")
+}
+
+func TestVerifyOfferingRequirements_PayinLessThanMin(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+
+	offering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+			offering.Min("100"),
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
+	)
+	assert.NoError(t, err)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		offering.Metadata.ID,
+		rfq.Payin("1", "SQUAREPAY"),
+		rfq.Payout("STORED_BALANCE"),
+	)
+
+	err = r.VerifyOfferingRequirements(offering)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "payin amount is below minimum")
+}
+
+func TestVerifyOfferingRequirements_VerifyPayinMethodFail_PayinMethodKindNotSupported(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+
+	offering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
+	)
+	assert.NoError(t, err)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		offering.Metadata.ID,
+		rfq.Payin(
+			"100",
+			"AFTERPAY",
+		),
+		rfq.Payout("STORED_BALANCE"),
+	)
+
+	err = r.VerifyOfferingRequirements(offering)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "offering does not support rfq's payinMethod kind")
+}
+
+func TestVerifyOfferingRequirements_VerifyPayinMethodFail_OfferingRequiredPaymentDetailsNil(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+
+	offering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
+	)
+	assert.NoError(t, err)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		offering.Metadata.ID,
+		rfq.Payin(
+			"100",
+			"SQUAREPAY",
+			rfq.PaymentDetails(map[string]any{"accountNumber": "1234567890123456"}),
+		),
+		rfq.Payout("STORED_BALANCE"),
+	)
+
+	err = r.VerifyOfferingRequirements(offering)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "paymentDetails must be omitted when offering requiredPaymentDetails is omitted")
+}
+
+func TestVerifyOfferingRequirements_VerifyPayinMethodFail_PrivateDataNil(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+
+	offering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{
+				offering.NewPayinMethod(
+					"SPEI",
+					offering.RequiredDetails(`{
+						"$schema": "http://json-schema.org/draft-07/schema#",
+						"additionalProperties": false,
+						"properties": {
+							"clabe": {
+								"type": "string"
+							}
+						},
+						"required": ["clabe"]
+					}`),
+				),
+			},
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
+	)
+	assert.NoError(t, err)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		offering.Metadata.ID,
+		rfq.Payin(
+			"100",
+			"SPEI",
+		),
+		rfq.Payout("STORED_BALANCE"),
+	)
+
+	err = r.VerifyOfferingRequirements(offering)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "offering requiredPaymentDetails is present but rfq private data is omitted")
 }

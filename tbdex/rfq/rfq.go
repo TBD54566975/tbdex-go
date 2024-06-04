@@ -195,7 +195,7 @@ func (r *RFQ) VerifyOfferingRequirements(offering offering.Offering) error {
 		}
 
 		if payinAmount > maxAmount {
-			return fmt.Errorf("payin amount exceeds maximum. %f > %f", payinAmount, maxAmount)
+			return fmt.Errorf("payin amount exceeds maximum. (rfq) %f > %f (offering)", payinAmount, maxAmount)
 		}
 	}
 
@@ -207,37 +207,33 @@ func (r *RFQ) VerifyOfferingRequirements(offering offering.Offering) error {
 		}
 
 		if payinAmount < minAmount {
-			return fmt.Errorf("rfq payinAmount is below offering's minAmount. (rfq) %s < %s (offering)", r.Data.Payin.Amount, offering.Data.Payin.Min)
+			return fmt.Errorf("rfq payin amount is below minimum. (rfq) %s < %s (offering)", r.Data.Payin.Amount, offering.Data.Payin.Min)
 		}
 	}
 
-	if r.PrivateData != nil {
+	// Verify payin method
+	err = r.verifyPaymentMethod(
+		r.Data.Payin.Kind,
+		r.Data.Payin.PaymentDetailsHash,
+		r.PrivateData,
+		convertPayinMethods(offering.Data.Payin.Methods),
+		"payin",
+	)
+	if err != nil {
+		return fmt.Errorf("failed to verify payin method: %w", err)
+	}
 
-		// Verify payin method
-		err = r.verifyPaymentMethod(
-			r.Data.Payin.Kind,
-			r.Data.Payin.PaymentDetailsHash,
-			r.PrivateData.Payin.PaymentDetails,
-			convertPayinMethods(offering.Data.Payin.Methods),
-			"payin",
-		)
-		if err != nil {
-			return fmt.Errorf("failed to verify payin method: %w", err)
-		}
+	// Verify payout method
+	err = r.verifyPaymentMethod(
+		r.Data.Payout.Kind,
+		r.Data.Payout.PaymentDetailsHash,
+		r.PrivateData,
+		convertPayoutMethods(offering.Data.Payout.Methods),
+		"payout",
+	)
 
-		// Verify payout method
-		err = r.verifyPaymentMethod(
-			r.Data.Payout.Kind,
-			r.Data.Payout.PaymentDetailsHash,
-			r.PrivateData.Payout.PaymentDetails,
-			convertPayoutMethods(offering.Data.Payout.Methods),
-			"payout",
-		)
-
-		if err != nil {
-			return fmt.Errorf("failed to verify payout method: %w", err)
-		}
-
+	if err != nil {
+		return fmt.Errorf("failed to verify payout method: %w", err)
 	}
 
 	err = r.verifyClaims(offering)
@@ -268,7 +264,7 @@ func convertPayoutMethods(payoutMethods []offering.PayoutMethod) []offering.Paym
 func (r *RFQ) verifyPaymentMethod(
 	selectedPaymentKind string,
 	selectedPaymentDetailsHash string,
-	selectedPaymentDetails map[string]interface{},
+	privateData *PrivateData,
 	offeringPaymentMethods []offering.PaymentMethod,
 	payDirection string,
 ) error {
@@ -282,13 +278,13 @@ func (r *RFQ) verifyPaymentMethod(
 
 	// If no matching payment methods are found, throw an error
 	if len(allowedPaymentMethods) == 0 {
-		var paymentMethodKinds []string
+		var allowedPaymentMethodKinds []string
 		for _, paymentMethod := range offeringPaymentMethods {
-			paymentMethodKinds = append(paymentMethodKinds, paymentMethod.GetKind())
+			allowedPaymentMethodKinds = append(allowedPaymentMethodKinds, paymentMethod.GetKind())
 		}
 		return fmt.Errorf(
 			"offering does not support rfq's %sMethod kind. (rfq) %s was not found in: [%s] (offering)",
-			payDirection, selectedPaymentKind, strings.Join(paymentMethodKinds, ", "),
+			payDirection, selectedPaymentKind, strings.Join(allowedPaymentMethodKinds, ", "),
 		)
 	}
 
@@ -298,33 +294,50 @@ func (r *RFQ) verifyPaymentMethod(
 			if selectedPaymentDetailsHash == "" {
 				return nil
 			}
-
 			// selectedPaymentDetailsHash is present even though requiredPaymentDetails is omitted.
 			return fmt.Errorf("rfq paymentDetails must be omitted when offering requiredPaymentDetails is omitted")
+		}
 
-		} else {
-			// requiredPaymentDetails is present, so Rfq's payment details must match
-			sch, err := json.Marshal(paymentMethod.GetRequiredPaymentDetails())
-			if err != nil {
-				return fmt.Errorf("failed to marshal requiredPaymentDetails: %w", err)
-			}
+		// requiredPaymentDetails is present but privateData is nil
+		if privateData == nil {
+			return fmt.Errorf("offering requiredPaymentDetails is present but rfq private data is omitted")
+		}
 
-			schema, err := jsonschema.CompileString("id", string(sch))
+		// requiredPaymentDetails is present and privateData is present, so Rfq's payment details must match
+		if privateData.Payin.PaymentDetails != nil {
+			err := validatePaymentDetailSchema(paymentMethod, privateData.Payin.PaymentDetails, payDirection)
 			if err != nil {
-				return fmt.Errorf("failed to compile requiredPaymentDetails schema: %w", err)
+				return err
 			}
+		}
 
-			err = schema.Validate(selectedPaymentDetails)
+		if privateData.Payout.PaymentDetails != nil {
+			err := validatePaymentDetailSchema(paymentMethod, privateData.Payout.PaymentDetails, payDirection)
 			if err != nil {
-				return fmt.Errorf("failed to validate %sMethod's paymentDetails: %w", payDirection, err)
+				return err
 			}
-			// no error from requiredPaymentDetails schema validation against selectedPaymentDetails, we have a match
-			return nil
 		}
 	}
-
 	return nil
+}
 
+func validatePaymentDetailSchema(paymentMethod offering.PaymentMethod, paymentDetails map[string]any, payDirection string) error {
+	sch, err := json.Marshal(paymentMethod.GetRequiredPaymentDetails())
+	if err != nil {
+		return fmt.Errorf("failed to marshal requiredPaymentDetails: %w", err)
+	}
+
+	// todo idk what the id should be?
+	schema, err := jsonschema.CompileString("id", string(sch))
+	if err != nil {
+		return fmt.Errorf("failed to compile requiredPaymentDetails schema: %w", err)
+	}
+
+	err = schema.Validate(paymentDetails)
+	if err != nil {
+		return fmt.Errorf("failed to validate %sMethod's paymentDetails: %w", payDirection, err)
+	}
+	return nil
 }
 
 func (r *RFQ) verifyClaims(offering offering.Offering) error {

@@ -66,8 +66,15 @@ func Create(payin *PayinDetails, payout *PayoutDetails, rate string, opts ...Cre
 
 // NewPayin creates PayinDetails
 func NewPayin(currencyCode string, methods []PayinMethod, opts ...PaymentOption) *PayinDetails {
+	o := paymentOptions{}
+	for _, opt := range opts {
+		opt(&o)
+	}
+
 	return &PayinDetails{
 		CurrencyCode: currencyCode,
+		Min:          o.Min,
+		Max:          o.Max,
 		Methods:      methods,
 	}
 }
@@ -80,13 +87,14 @@ func NewPayinMethod(kind string, opts ...PaymentMethodOption) PayinMethod {
 	}
 
 	return PayinMethod{
-		Kind:        kind,
-		Min:         o.Min,
-		Max:         o.Max,
-		Group:       o.Group,
-		Fee:         o.Fee,
-		Name:        o.Name,
-		Description: o.Description,
+		Kind:                   kind,
+		Min:                    o.Min,
+		Max:                    o.Max,
+		Group:                  o.Group,
+		Fee:                    o.Fee,
+		Name:                   o.Name,
+		Description:            o.Description,
+		RequiredPaymentDetails: o.RequiredPaymentDetails,
 	}
 }
 
