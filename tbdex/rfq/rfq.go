@@ -17,7 +17,6 @@ import (
 	"github.com/tbd54566975/web5-go/pexv2"
 	"github.com/tbd54566975/web5-go/vc"
 
-	// jsonschema "github.com/xeipuuv/gojsonschema" // todo remove this one
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 )
 
