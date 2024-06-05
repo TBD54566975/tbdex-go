@@ -173,6 +173,8 @@ func (r *RFQ) verifyPrivateData() error {
 	return nil
 }
 
+// VerifyOfferingRequirements verifies that the RFQ meets all the requirements of the offering,
+// including payin/payout amount, method, and claims.
 func (r *RFQ) VerifyOfferingRequirements(offering offering.Offering) error {
 	if offering.Metadata.Protocol != r.Metadata.Protocol {
 		return fmt.Errorf("protocol version mismatch. (rfq) %s != %s (offering)", r.Metadata.Protocol, offering.Metadata.Protocol)
@@ -295,12 +297,12 @@ func (r *RFQ) verifyPaymentMethod(
 				return nil
 			}
 			// selectedPaymentDetailsHash is present even though requiredPaymentDetails is omitted.
-			return fmt.Errorf("rfq paymentDetails must be omitted when offering requiredPaymentDetails is omitted")
+			return errors.New("rfq paymentDetails must be omitted when offering requiredPaymentDetails is omitted")
 		}
 
 		// todo do we actually want to return error in this case where requiredPaymentDetails is present but privateData is nil?
 		if privateData == nil {
-			return fmt.Errorf("offering requiredPaymentDetails is present but rfq private data is omitted")
+			return errors.New("offering requiredPaymentDetails is present but rfq private data is omitted")
 		}
 
 		// requiredPaymentDetails is present and privateData is present, so Rfq's payment details must match
@@ -356,7 +358,7 @@ func (r *RFQ) verifyClaims(requiredClaims *pexv2.PresentationDefinition) error {
 	}
 
 	if len(credentials) == 0 {
-		return fmt.Errorf("claims do not fulfill the offering's requirements")
+		return errors.New("claims do not fulfill the offering's requirements")
 	}
 
 	for _, cred := range credentials {
@@ -370,6 +372,7 @@ func (r *RFQ) verifyClaims(requiredClaims *pexv2.PresentationDefinition) error {
 	return nil
 }
 
+// PayDirection is an enum for the direction of payment
 type PayDirection string
 
 const (

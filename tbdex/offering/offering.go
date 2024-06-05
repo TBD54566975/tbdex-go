@@ -47,23 +47,28 @@ type PayoutDetails struct {
 	Methods      []PayoutMethod `json:"methods,omitempty"`
 }
 
+// PaymentMethod is an interface for PayinMethod and PayoutMethod.
 type PaymentMethod interface {
 	GetKind() string
 	GetRequiredPaymentDetails() json.RawMessage
 }
 
+// GetKind returns the kind of the PayinMethod.
 func (pm PayinMethod) GetKind() string {
     return pm.Kind
 }
 
+// GetRequiredPaymentDetails returns the required payment details of the PayinMethod.
 func (pm PayinMethod) GetRequiredPaymentDetails() json.RawMessage {
     return pm.RequiredPaymentDetails
 }
 
+// GetKind returns the kind of the PayoutMethod.
 func (pm PayoutMethod) GetKind() string {
     return pm.Kind
 }
 
+// GetRequiredPaymentDetails returns the required payment details of the PayoutMethod.
 func (pm PayoutMethod) GetRequiredPaymentDetails() json.RawMessage {
     return pm.RequiredPaymentDetails
 }
