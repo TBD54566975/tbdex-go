@@ -236,7 +236,7 @@ func (r *RFQ) VerifyOfferingRequirements(offering offering.Offering) error {
 		return fmt.Errorf("failed to verify payout method: %w", err)
 	}
 
-	err = r.verifyClaims(offering)
+	err = r.verifyClaims(offering.Data.RequiredClaims)
 	if err != nil {
 		return fmt.Errorf("failed to verify claims: %w", err)
 	}
@@ -266,7 +266,7 @@ func (r *RFQ) verifyPaymentMethod(
 	selectedPaymentDetailsHash string,
 	privateData *PrivateData,
 	offeringPaymentMethods []offering.PaymentMethod,
-	payDirection string,
+	payDirection PayDirection,
 ) error {
 	// Filter allowed payment methods by selectedPaymentKind
 	var allowedPaymentMethods []offering.PaymentMethod
@@ -298,20 +298,20 @@ func (r *RFQ) verifyPaymentMethod(
 			return fmt.Errorf("rfq paymentDetails must be omitted when offering requiredPaymentDetails is omitted")
 		}
 
-		// requiredPaymentDetails is present but privateData is nil
+		// todo do we actually want to return error in this case where requiredPaymentDetails is present but privateData is nil?
 		if privateData == nil {
 			return fmt.Errorf("offering requiredPaymentDetails is present but rfq private data is omitted")
 		}
 
 		// requiredPaymentDetails is present and privateData is present, so Rfq's payment details must match
-		if privateData.Payin.PaymentDetails != nil {
+		if payDirection == PayIn {
 			err := validatePaymentDetailSchema(paymentMethod, privateData.Payin.PaymentDetails, payDirection)
 			if err != nil {
 				return err
 			}
 		}
 
-		if privateData.Payout.PaymentDetails != nil {
+		if payDirection == PayOut {
 			err := validatePaymentDetailSchema(paymentMethod, privateData.Payout.PaymentDetails, payDirection)
 			if err != nil {
 				return err
@@ -321,14 +321,18 @@ func (r *RFQ) verifyPaymentMethod(
 	return nil
 }
 
-func validatePaymentDetailSchema(paymentMethod offering.PaymentMethod, paymentDetails map[string]any, payDirection string) error {
+func validatePaymentDetailSchema(paymentMethod offering.PaymentMethod, paymentDetails map[string]any, payDirection PayDirection) error {
+	if paymentDetails == nil {
+		return fmt.Errorf("rfq %s paymentDetails are missing", payDirection)
+	}
+
 	sch, err := json.Marshal(paymentMethod.GetRequiredPaymentDetails())
 	if err != nil {
 		return fmt.Errorf("failed to marshal requiredPaymentDetails: %w", err)
 	}
 
 	// todo idk what the id should be?
-	schema, err := jsonschema.CompileString("id", string(sch))
+	schema, err := jsonschema.CompileString("schema.json", string(sch))
 	if err != nil {
 		return fmt.Errorf("failed to compile requiredPaymentDetails schema: %w", err)
 	}
@@ -340,12 +344,12 @@ func validatePaymentDetailSchema(paymentMethod offering.PaymentMethod, paymentDe
 	return nil
 }
 
-func (r *RFQ) verifyClaims(offering offering.Offering) error {
-	if offering.Data.RequiredClaims == nil {
+func (r *RFQ) verifyClaims(requiredClaims *pexv2.PresentationDefinition) error {
+	if requiredClaims == nil {
 		return nil
 	}
 
-	credentials, err := pexv2.SelectCredentials(r.PrivateData.Claims, *offering.Data.RequiredClaims)
+	credentials, err := pexv2.SelectCredentials(r.PrivateData.Claims, *requiredClaims)
 
 	if err != nil {
 		return fmt.Errorf("failed to select credentials: %w", err)
@@ -365,6 +369,13 @@ func (r *RFQ) verifyClaims(offering offering.Offering) error {
 
 	return nil
 }
+
+type PayDirection string
+
+const (
+	PayIn  PayDirection = "payin"
+	PayOut PayDirection = "payout"
+)
 
 // Data encapsulates the data content of a request for quote.
 type Data struct {
