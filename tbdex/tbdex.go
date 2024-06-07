@@ -19,6 +19,7 @@ type Message interface {
 	GetValidNext() []string
 	GetKind() string
 	GetMetadata() message.Metadata
+	IsValidNext(string) bool
 	// TODO: uncomment these once rfq has been refactored to separate privateStrict bool
 	// Verify() error
 	// Parse([]byte) (Message, error)
