@@ -44,9 +44,19 @@ func (q Quote) GetValidNext() []string {
 	return ValidNext()
 }
 
+// IsValidNext checks if the kind is a valid next message kind for a Quote.
+func (q Quote) IsValidNext(kind string) bool {
+	for _, k := range ValidNext() {
+		if k == kind {
+			return true
+		}
+	}
+	return false
+}
+
 // Data encapsulates the data content of a  quote.
 type Data struct {
-	ExpiresAt string       `json:"expiresAt,omitmepty"`
+	ExpiresAt string       `json:"expiresAt,omitempty"`
 	Payin     QuoteDetails `json:"payin,omitempty"`
 	Payout    QuoteDetails `json:"payout,omitempty"`
 }
@@ -55,7 +65,7 @@ type Data struct {
 type QuoteDetails struct {
 	CurrencyCode       string              `json:"currencyCode,omitempty"`
 	Amount             string              `json:"amount,omitempty"`
-	Fee                string              `json:"fee,omitempty,omitempty"`
+	Fee                string              `json:"fee,omitempty"`
 	PaymentInstruction *PaymentInstruction `json:"paymentInstruction,omitempty"`
 }
 

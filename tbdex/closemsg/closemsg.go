@@ -37,6 +37,11 @@ func (c Close) GetValidNext() []string {
 	return []string{}
 }
 
+// IsValidNext checks if the kind is a valid next message kind for a close.
+func (c Close) IsValidNext(kind string) bool {
+	return false
+}
+
 // Data encapsulates the data content of a close.
 type Data struct {
 	Reason  string `json:"reason,omitempty"`

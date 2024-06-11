@@ -10,6 +10,11 @@ import (
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
 	"go.jetpack.io/typeid"
+
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
+	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 )
 
 func TestCreate(t *testing.T) {
@@ -424,4 +429,25 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	err = rfq.Verify()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "does not match message metadata from")
+}
+
+func TestIsValidNext(t *testing.T) {
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	offeringID, _ := typeid.WithPrefix(offering.Kind)
+
+	r, _ := rfq.Create(
+		walletDID,
+		pfiDID.URI,
+		offeringID.String(),
+		rfq.Payin("100", "STORED_BALANCE"),
+		rfq.Payout("BANK_ACCOUNT"),
+	)
+
+	assert.False(t, r.IsValidNext(rfq.Kind))
+	assert.False(t, r.IsValidNext(order.Kind))
+	assert.False(t, r.IsValidNext(orderstatus.Kind))
+
+	assert.True(t, r.IsValidNext(closemsg.Kind))
+	assert.True(t, r.IsValidNext(quote.Kind))
 }

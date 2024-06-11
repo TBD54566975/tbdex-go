@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
+	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
@@ -148,4 +151,27 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 
 	err = c.Verify()
 	assert.Error(t, err)
+}
+
+func TestIsValidNext(t *testing.T) {
+
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	rfqID, _ := typeid.WithPrefix(rfq.Kind)
+
+	os, err := closemsg.Create(
+		pfiDID,
+		walletDID.URI,
+		rfqID.String(),
+		closemsg.Reason("test"),
+	)
+
+	assert.NoError(t, err)
+
+	// close message is terminal, so it cannot be followed by any other message
+	assert.False(t, os.IsValidNext(rfq.Kind))
+	assert.False(t, os.IsValidNext(quote.Kind))
+	assert.False(t, os.IsValidNext(order.Kind))
+	assert.False(t, os.IsValidNext(orderstatus.Kind))
+	assert.False(t, os.IsValidNext(closemsg.Kind))
 }

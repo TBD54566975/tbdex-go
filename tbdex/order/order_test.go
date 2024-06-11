@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
+	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
+
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"go.jetpack.io/typeid"
@@ -130,4 +134,24 @@ func TestSign(t *testing.T) {
 
 	err = o.Verify()
 	assert.NoError(t, err)
+}
+
+func TestIsValidNext(t *testing.T) {
+
+	alice, err := didjwk.Create()
+	assert.NoError(t, err)
+	pfi, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	exchangeID := typeid.Must(typeid.WithPrefix(rfq.Kind))
+	o, err := order.Create(alice, pfi.URI, exchangeID.String())
+	assert.NoError(t, err)
+
+	assert.False(t, o.IsValidNext(rfq.Kind))
+	assert.False(t, o.IsValidNext(quote.Kind))
+	assert.False(t, o.IsValidNext(order.Kind))
+
+	// order can only be followed by orderstatus or close
+	assert.True(t, o.IsValidNext(orderstatus.Kind))
+	assert.True(t, o.IsValidNext(closemsg.Kind))
 }

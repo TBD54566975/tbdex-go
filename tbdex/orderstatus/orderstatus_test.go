@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/order"
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
+	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
@@ -148,4 +151,28 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 
 	err = os.Verify()
 	assert.Error(t, err)
+}
+
+func TestIsValidNext(t *testing.T) {
+
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	rfqID, _ := typeid.WithPrefix(rfq.Kind)
+
+	os, err := orderstatus.Create(
+		pfiDID,
+		walletDID.URI,
+		rfqID.String(),
+		"processing",
+	)
+
+	assert.NoError(t, err)
+
+	assert.False(t, os.IsValidNext(rfq.Kind))
+	assert.False(t, os.IsValidNext(quote.Kind))
+	assert.False(t, os.IsValidNext(order.Kind))
+	
+	// orderstatus can only be followed by another orderstatus or close
+	assert.True(t, os.IsValidNext(orderstatus.Kind))
+	assert.True(t, os.IsValidNext(closemsg.Kind))
 }
