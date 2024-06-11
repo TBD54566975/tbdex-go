@@ -448,7 +448,6 @@ func TestIsValidNext(t *testing.T) {
 	assert.False(t, r.IsValidNext(order.Kind))
 	assert.False(t, r.IsValidNext(orderstatus.Kind))
 
-	// todo rfq can only be followed by quote... or close? 
 	assert.True(t, r.IsValidNext(closemsg.Kind))
 	assert.True(t, r.IsValidNext(quote.Kind))
 }
