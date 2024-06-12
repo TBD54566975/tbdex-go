@@ -520,7 +520,7 @@ func TestVerifyOfferingRequirements(t *testing.T) {
 		assert.Contains(t, err.Error(), "max amount")
 	})
 
-	t.Run("payin_less_than_min", func(t *testing.T) {
+	t.Run("payin_amt_less_than_min", func(t *testing.T) {
 		pfiDID, err := didjwk.Create()
 		assert.NoError(t, err)
 

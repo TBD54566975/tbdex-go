@@ -82,6 +82,14 @@ func (r *RFQ) Verify() error {
 	return nil
 }
 
+// VerifyOfferingRequirements verifies that the RFQ meets the requirements of the provided offering.
+// Specifically this includes the following checks:
+//   - payin method is present in the offering
+//   - payin amount is within the offering or payin method's min and max
+//   - payin details satisfy the offering's required payment details
+//   - payout method is present in the offering
+//   - payout details satisfy the offering's required payment details
+//   - claims satisfy the offering's required claims
 func (rfq *RFQ) VerifyOfferingRequirements(offering _offering.Offering) error {
 	if rfq.Data.OfferingID != offering.Metadata.ID {
 		return fmt.Errorf("rfq's offering id does not match offering used to evaluate rfq")
