@@ -5,13 +5,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TBD54566975/tbdex-go/tbdex/quote"
-	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
 
 	"go.jetpack.io/typeid"
+
+	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
+	"github.com/TBD54566975/tbdex-go/tbdex/quote"
+	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 )
 
 func TestCreate(t *testing.T) {
@@ -174,4 +178,29 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	err = quote.Verify()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "does not match message metadata from")
+}
+
+func TestIsValidNext(t *testing.T) {
+
+	pfiDID, _ := didjwk.Create()
+	walletDID, _ := didjwk.Create()
+	rfqID, _ := typeid.WithPrefix(rfq.Kind)
+
+	q, err := quote.Create(
+		pfiDID,
+		walletDID.URI,
+		rfqID.String(),
+		time.Now().UTC().Format(time.RFC3339),
+		quote.NewQuoteDetails("USD", "10"),
+		quote.NewQuoteDetails("MXN", "500"),
+	)
+	assert.NoError(t, err)
+
+	assert.False(t, q.IsValidNext(rfq.Kind))
+	assert.False(t, q.IsValidNext(quote.Kind))
+	assert.False(t, q.IsValidNext(orderstatus.Kind))
+
+	// quote can only be followed by order or close
+	assert.True(t, q.IsValidNext(order.Kind))
+	assert.True(t, q.IsValidNext(closemsg.Kind))
 }

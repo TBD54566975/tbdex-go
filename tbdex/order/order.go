@@ -46,6 +46,15 @@ func (o Order) GetValidNext() []string {
 	return []string{orderstatus.Kind, closemsg.Kind}
 }
 
+// IsValidNext checks if the kind is a valid next message kind for an order.
+func (o Order) IsValidNext(kind string) bool {
+	for _, k := range ValidNext() {
+		if k == kind {
+			return true
+		}
+	}
+	return false
+}
 // Data represents the data field of an order message.
 // Note that this is intentionally left empty as per the spec
 type Data struct{}

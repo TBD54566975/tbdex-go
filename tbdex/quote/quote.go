@@ -44,6 +44,16 @@ func (q Quote) GetValidNext() []string {
 	return ValidNext()
 }
 
+// IsValidNext checks if the kind is a valid next message kind for a Quote.
+func (q Quote) IsValidNext(kind string) bool {
+	for _, k := range ValidNext() {
+		if k == kind {
+			return true
+		}
+	}
+	return false
+}
+
 // Data encapsulates the data content of a  quote.
 type Data struct {
 	ExpiresAt string       `json:"expiresAt,omitempty"`

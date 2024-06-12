@@ -50,6 +50,16 @@ func (r RFQ) GetValidNext() []string {
 	return ValidNext()
 }
 
+// IsValidNext checks if the kind is a valid next message kind for a RFQ.
+func (r RFQ) IsValidNext(kind string) bool {
+	for _, k := range ValidNext() {
+		if k == kind {
+			return true
+		}
+	}
+	return false
+}
+
 // UnmarshalJSON validates and unmarshals the input data into an RFQ.
 func (r *RFQ) UnmarshalJSON(data []byte) error {
 	err := validator.Validate(validator.TypeMessage, data, validator.WithKind(Kind))
