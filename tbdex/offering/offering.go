@@ -49,7 +49,7 @@ type PayoutDetails struct {
 
 // PayinMethod represents a single payment option on an Offering.
 type PayinMethod struct {
-	Kind                   string          `json:"kind,omitmempty"`
+	Kind                   string          `json:"kind,omitempty"`
 	Name                   string          `json:"name,omitempty"`
 	Description            string          `json:"description,omitempty"`
 	Group                  string          `json:"group,omitempty"`

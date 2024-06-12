@@ -3,18 +3,16 @@ package rfq_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
 	"github.com/alecthomas/assert/v2"
+	"github.com/tbd54566975/web5-go/dids/did"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
+	"github.com/tbd54566975/web5-go/pexv2"
 	"go.jetpack.io/typeid"
-
-	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
-	"github.com/TBD54566975/tbdex-go/tbdex/order"
-	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
-	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 )
 
 func TestCreate(t *testing.T) {
@@ -431,23 +429,427 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	assert.Contains(t, err.Error(), "does not match message metadata from")
 }
 
-func TestIsValidNext(t *testing.T) {
-	pfiDID, _ := didjwk.Create()
-	walletDID, _ := didjwk.Create()
-	offeringID, _ := typeid.WithPrefix(offering.Kind)
+func TestVerifyOfferingRequirements(t *testing.T) {
+	testOffering := func(t *testing.T, pfiDID did.BearerDID) offering.Offering {
+		t.Helper()
 
-	r, _ := rfq.Create(
-		walletDID,
-		pfiDID.URI,
-		offeringID.String(),
-		rfq.Payin("100", "STORED_BALANCE"),
-		rfq.Payout("BANK_ACCOUNT"),
-	)
+		o, err := offering.Create(
+			offering.NewPayin(
+				"USD",
+				[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+				offering.Min("5"),
+				offering.Max("100"),
+			),
+			offering.NewPayout(
+				"USDC",
+				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			),
+			"1.0",
+			offering.From(pfiDID),
+		)
 
-	assert.False(t, r.IsValidNext(rfq.Kind))
-	assert.False(t, r.IsValidNext(order.Kind))
-	assert.False(t, r.IsValidNext(orderstatus.Kind))
+		assert.NoError(t, err)
 
-	assert.True(t, r.IsValidNext(closemsg.Kind))
-	assert.True(t, r.IsValidNext(quote.Kind))
+		return o
+	}
+
+	t.Run("pass", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		offering := testOffering(t, pfiDID)
+
+		r, err := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("100", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		assert.NoError(t, err)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.NoError(t, err)
+	})
+
+	t.Run("offeringId_mismatch", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		offering := testOffering(t, pfiDID)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			"wrong_offering_id",
+			rfq.Payin("100", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "offering id")
+	})
+
+	t.Run("payin_amt_exceeds_offering_max", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		offering := testOffering(t, pfiDID)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("99999", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "max amount")
+	})
+
+	t.Run("payin_amt_less_than_min", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		offering := testOffering(t, pfiDID)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("1", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "minimum amount")
+	})
+
+	t.Run("payin_method_not_supported", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		offering := testOffering(t, pfiDID)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("100", "AFTERPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "payin method not found")
+	})
+
+	t.Run("payin_details_unexpected", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		offering := testOffering(t, pfiDID)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin(
+				"100",
+				"SQUAREPAY",
+				rfq.PaymentDetails(map[string]any{"accountNumber": "1234567890123456"}),
+			),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "unexpected payin details")
+	})
+
+	t.Run("payin_details_nil", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		offering, err := offering.Create(
+			offering.NewPayin(
+				"MXN",
+				[]offering.PayinMethod{
+					offering.NewPayinMethod(
+						"SPEI",
+						offering.RequiredDetails(`{
+							"$schema": "http://json-schema.org/draft-07/schema#",
+							"additionalProperties": false,
+							"properties": {
+								"clabe": {
+									"type": "string"
+								}
+							},
+							"required": ["clabe"]
+						}`),
+					),
+				},
+			),
+			offering.NewPayout(
+				"USDC",
+				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			),
+			"16.0",
+			offering.From(pfiDID),
+		)
+		assert.NoError(t, err)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("100", "SPEI"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "does not contain expected payin details")
+	})
+
+	t.Run("payin_details_missing", func(t *testing.T) {
+		pfiDID, _ := didjwk.Create()
+		walletDID, _ := didjwk.Create()
+
+		offering, err := offering.Create(
+			offering.NewPayin(
+				"USD",
+				[]offering.PayinMethod{
+					offering.NewPayinMethod(
+						"SPEI",
+						offering.RequiredDetails(`{
+							"$schema": "http://json-schema.org/draft-07/schema#",
+							"additionalProperties": false,
+							"properties": {
+								"clabe": {
+									"type": "string"
+								}
+							},
+							"required": ["clabe"]
+						}`),
+					),
+				},
+			),
+			offering.NewPayout(
+				"USDC",
+				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			),
+			"1.0",
+			offering.From(pfiDID),
+		)
+		assert.NoError(t, err)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin(
+				"100",
+				"SPEI",
+			),
+			rfq.Payout("STORED_BALANCE", rfq.PaymentDetails(map[string]any{"accountNumber": "1234567890123456"})),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+
+		assert.Contains(t, err.Error(), "does not contain expected payin detail")
+
+	})
+
+	t.Run("payout_details_invalid", func(t *testing.T) {})
+
+	t.Run("claims_missing", func(t *testing.T) {
+		pfiDID, _ := didjwk.Create()
+		walletDID, _ := didjwk.Create()
+
+		pd := pexv2.PresentationDefinition{
+			ID: "test_pd",
+			InputDescriptors: []pexv2.InputDescriptor{
+				{
+					ID: "test_input_descriptor",
+					Constraints: pexv2.Constraints{
+						Fields: []pexv2.Field{
+							{
+								Path: []string{"$.vc.credentialSubject.name"},
+								Filter: &pexv2.Filter{
+									Const: "Satoshi Tacomoto",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		offering, err := offering.Create(
+			offering.NewPayin(
+				"USD",
+				[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+			),
+			offering.NewPayout(
+				"USDC",
+				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			),
+			"1.0",
+			offering.From(pfiDID),
+			offering.RequiredClaims(pd),
+		)
+		assert.NoError(t, err)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("100", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "claims do not satisfy")
+	})
+
+	t.Run("claims_invalid", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		pd := pexv2.PresentationDefinition{
+			ID: "test_pd",
+			InputDescriptors: []pexv2.InputDescriptor{
+				{
+					ID: "test_input_descriptor",
+					Constraints: pexv2.Constraints{
+						Fields: []pexv2.Field{
+							{
+								Path: []string{"$.vc.credentialSubject.name"},
+								Filter: &pexv2.Filter{
+									Const: "Satoshi Tacomoto",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		vcJwt := "eyJ0eXAiOiJKV1QiLCJhbGciOiJFZERTQSIsImtpZCI6ImRpZDprZXk6ejZNa2ZIQk5tYzRjQ2hOdER2YXIxOFRaaWdmWHQ3UDY1RkJHd3FRVHR4UW9RUG5HI3o2TWtmSEJObWM0Y0NoTnREdmFyMThUWmlnZlh0N1A2NUZCR3dxUVR0eFFvUVBuRyJ9.eyJpc3MiOiJkaWQ6a2V5Ono2TWtmSEJObWM0Y0NoTnREdmFyMThUWmlnZlh0N1A2NUZCR3dxUVR0eFFvUVBuRyIsInN1YiI6ImRpZDprZXk6ejZNa2ZIQk5tYzRjQ2hOdER2YXIxOFRaaWdmWHQ3UDY1RkJHd3FRVHR4UW9RUG5HIiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlN0cmVldENyZWQiXSwiaWQiOiJ1cm46dXVpZDoxM2Q1YTg3YS1kY2Y1LTRmYjktOWUyOS0wZTYyZTI0YzQ0ODYiLCJpc3N1ZXIiOiJkaWQ6a2V5Ono2TWtmSEJObWM0Y0NoTnREdmFyMThUWmlnZlh0N1A2NUZCR3dxUVR0eFFvUVBuRyIsImlzc3VhbmNlRGF0ZSI6IjIwMjMtMTItMDdUMTc6MTk6MTNaIiwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6a2V5Ono2TWtmSEJObWM0Y0NoTnREdmFyMThUWmlnZlh0N1A2NUZCR3dxUVR0eFFvUVBuRyIsIm90aGVydGhpbmciOiJvdGhlcnN0dWZmIn19fQ.FVvL3z8LHJXm7lGX2bGFvH_U-bTyoheRbLzE7zIk_P1BKwRYeW4sbYNzsovFX59twXrnpF-hHkqVVsejSljxDw"
+		offering, err := offering.Create(
+			offering.NewPayin(
+				"USD",
+				[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+			),
+			offering.NewPayout(
+				"USDC",
+				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			),
+			"1.0",
+			offering.From(pfiDID),
+			offering.RequiredClaims(pd),
+		)
+		assert.NoError(t, err)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("100", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+			rfq.Claims([]string{vcJwt}),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "claims do not satisfy")
+	})
+
+	t.Run("claims_pass", func(t *testing.T) {
+		pfiDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		walletDID, err := didjwk.Create()
+		assert.NoError(t, err)
+
+		vcJwt := "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJa013VlhrNGN6SnVla1JhTjFsdmRXeFFUM010YjBabFEwWkxaVzAzY1hST1FWVTNiVzB0TjNaaFkxRWlmUSMwIiwidHlwIjoiSldUIn0.eyJpc3MiOiJkaWQ6andrOmV5SnJkSGtpT2lKUFMxQWlMQ0pqY25ZaU9pSkZaREkxTlRFNUlpd2llQ0k2SWtNd1ZYazRjekp1ZWtSYU4xbHZkV3hRVDNNdGIwWmxRMFpMWlcwM2NYUk9RVlUzYlcwdE4zWmhZMUVpZlEiLCJqdGkiOiJ1cm46dmM6dXVpZDo3MjllMTc2ZS1mYjNlLTQyOTktOWI3Yi02MGQzNmVkMzQxNmUiLCJuYmYiOjE3MTQxNjE1NjEsInN1YiI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJa013VlhrNGN6SnVla1JhTjFsdmRXeFFUM010YjBabFEwWkxaVzAzY1hST1FWVTNiVzB0TjNaaFkxRWlmUSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJTdHJlZXRDcmVkZW50aWFsIl0sImlzc3VlciI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJa013VlhrNGN6SnVla1JhTjFsdmRXeFFUM010YjBabFEwWkxaVzAzY1hST1FWVTNiVzB0TjNaaFkxRWlmUSIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmp3azpleUpyZEhraU9pSlBTMUFpTENKamNuWWlPaUpGWkRJMU5URTVJaXdpZUNJNklrTXdWWGs0Y3pKdWVrUmFOMWx2ZFd4UVQzTXRiMFpsUTBaTFpXMDNjWFJPUVZVM2JXMHROM1poWTFFaWZRIiwibmFtZSI6IlNhdG9zaGkgVGFjb21vdG8ifSwiaWQiOiJ1cm46dmM6dXVpZDo3MjllMTc2ZS1mYjNlLTQyOTktOWI3Yi02MGQzNmVkMzQxNmUiLCJpc3N1YW5jZURhdGUiOiIyMDI0LTA0LTI2VDE5OjU5OjIxWiJ9fQ.MoPYXkSASXEgySIc59HnSN8576cu5q8QC5tCG3PKr3j-glvZNa12j_P563FUVzx7PeFD3QkJne1RYBDOj3OcBw"
+
+		pd := pexv2.PresentationDefinition{
+			ID: "test_pd",
+			InputDescriptors: []pexv2.InputDescriptor{
+				{
+					ID: "test_input_descriptor",
+					Constraints: pexv2.Constraints{
+						Fields: []pexv2.Field{
+							{
+								Path: []string{"$.vc.credentialSubject.name"},
+								Filter: &pexv2.Filter{
+									Const: "Satoshi Tacomoto",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		offering, err := offering.Create(
+			offering.NewPayin(
+				"USD",
+				[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+			),
+			offering.NewPayout(
+				"USDC",
+				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			),
+			"1.0",
+			offering.From(pfiDID),
+			offering.RequiredClaims(pd),
+		)
+		assert.NoError(t, err)
+
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			offering.Metadata.ID,
+			rfq.Payin("100", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+			rfq.Claims([]string{vcJwt}),
+		)
+
+		err = r.VerifyOfferingRequirements(offering)
+		assert.NoError(t, err)
+	})
 }
