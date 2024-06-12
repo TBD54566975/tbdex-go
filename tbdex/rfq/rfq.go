@@ -144,8 +144,12 @@ func (rfq *RFQ) VerifyOfferingRequirements(offering _offering.Offering) error {
 		}
 	}
 
+	if selectedPayinMethod.RequiredPaymentDetails == nil && rfq.PrivateData != nil && rfq.PrivateData.Payin.PaymentDetails != nil {
+		return errors.New("rfq contains unexpected payin details")
+	}
+
 	if selectedPayinMethod.RequiredPaymentDetails != nil {
-		if rfq.PrivateData.Payin.PaymentDetails == nil {
+		if rfq.PrivateData == nil || rfq.PrivateData.Payin.PaymentDetails == nil {
 			return errors.New("rfq does not contain expected payin details")
 		}
 
@@ -197,8 +201,10 @@ func (rfq *RFQ) VerifyOfferingRequirements(offering _offering.Offering) error {
 		}
 	}
 
-	if err := rfq.verifyClaims(offering.Data.RequiredClaims); err != nil {
-		return fmt.Errorf("rfq claims do not satisfy offering's requirements")
+	if offering.Data.RequiredClaims != nil {
+		if err := rfq.verifyClaims(offering.Data.RequiredClaims); err != nil {
+			return fmt.Errorf("rfq claims do not satisfy offering's requirements")
+		}
 	}
 
 	return nil
@@ -295,7 +301,11 @@ func (r *RFQ) verifyPrivateData() error {
 
 func (r *RFQ) verifyClaims(requiredClaims *pexv2.PresentationDefinition) error {
 	if requiredClaims == nil {
-		return nil
+		return errors.New("required claims cannot be nil")
+	}
+
+	if r.PrivateData == nil || r.PrivateData.Claims == nil {
+		return errors.New("rfq claims is nil")
 	}
 
 	credentials, err := pexv2.SelectCredentials(r.PrivateData.Claims, *requiredClaims)
