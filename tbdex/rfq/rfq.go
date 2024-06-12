@@ -189,8 +189,12 @@ func (rfq *RFQ) VerifyOfferingRequirements(offering _offering.Offering) error {
 		return errors.New("rfq's selected payout method is not present in offering")
 	}
 
+	if selectedPayoutMethod.RequiredPaymentDetails == nil && rfq.PrivateData != nil && rfq.PrivateData.Payout.PaymentDetails != nil {
+		return errors.New("rfq contains unexpected payout details")
+	}
+
 	if selectedPayoutMethod.RequiredPaymentDetails != nil {
-		if rfq.PrivateData.Payout.PaymentDetails == nil {
+		if rfq.PrivateData == nil || rfq.PrivateData.Payout.PaymentDetails == nil {
 			return errors.New("rfq does not contain expected payout details")
 		}
 
