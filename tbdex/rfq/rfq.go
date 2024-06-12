@@ -139,7 +139,7 @@ func (rfq *RFQ) VerifyOfferingRequirements(offering _offering.Offering) error {
 		if maybeMax != "" {
 			maxAmount, err := decimal.NewFromString(maybeMax)
 			if err != nil {
-				return fmt.Errorf("failed to parse min amount: %w", err)
+				return fmt.Errorf("failed to parse max amount: %w", err)
 			}
 			max = &maxAmount
 			break
