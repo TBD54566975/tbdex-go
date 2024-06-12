@@ -429,63 +429,72 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 	assert.Contains(t, err.Error(), "does not match message metadata from")
 }
 
-func TestVerifyOfferingRequirements_Pass(t *testing.T) {
-	pfiDID, _ := didjwk.Create()
-	walletDID, _ := didjwk.Create()
-
-	offering, err := getSimpleOffering(pfiDID)
+func TestVerifyOfferingRequirements(t *testing.T) {
+	pfiDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
-	r, _ := rfq.Create(
-		walletDID,
-		pfiDID.URI,
-		offering.Metadata.ID,
-		rfq.Payin("100", "SQUAREPAY"),
-		rfq.Payout("STORED_BALANCE"),
+	walletDID, err := didjwk.Create()
+	assert.NoError(t, err)
+
+	simpleOffering, err := offering.Create(
+		offering.NewPayin(
+			"USD",
+			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+			offering.Min("5"),
+			offering.Max("100"),
+		),
+		offering.NewPayout(
+			"USDC",
+			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+		),
+		"1.0",
+		offering.From(pfiDID),
 	)
 
-	err = r.VerifyOfferingRequirements(offering)
-	assert.NoError(t, err)
-}
-
-func TestVerifyOfferingRequirements_OfferingIdMismatch(t *testing.T) {
-	pfiDID, _ := didjwk.Create()
-	walletDID, _ := didjwk.Create()
-
-	offering, err := getSimpleOffering(pfiDID)
 	assert.NoError(t, err)
 
-	r, _ := rfq.Create(
-		walletDID,
-		pfiDID.URI,
-		"wrong_offering_id",
-		rfq.Payin("100", "SQUAREPAY"),
-		rfq.Payout("STORED_BALANCE"),
-	)
+	t.Run("pass", func(t *testing.T) {
+		r, err := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			simpleOffering.Metadata.ID,
+			rfq.Payin("100", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
 
-	err = r.VerifyOfferingRequirements(offering)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "offering ID mismatch")
-}
+		assert.NoError(t, err)
 
-func TestVerifyOfferingRequirements_PayinMoreThanMax(t *testing.T) {
-	pfiDID, _ := didjwk.Create()
-	walletDID, _ := didjwk.Create()
+		err = r.VerifyOfferingRequirements(simpleOffering)
+		assert.NoError(t, err)
+	})
 
-	offering, err := getSimpleOffering(pfiDID)
-	assert.NoError(t, err)
+	t.Run("offeringId_mismatch", func(t *testing.T) {
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			"wrong_offering_id",
+			rfq.Payin("100", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
 
-	r, _ := rfq.Create(
-		walletDID,
-		pfiDID.URI,
-		offering.Metadata.ID,
-		rfq.Payin("99999", "SQUAREPAY"),
-		rfq.Payout("STORED_BALANCE"),
-	)
+		err = r.VerifyOfferingRequirements(simpleOffering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "offering id")
+	})
 
-	err = r.VerifyOfferingRequirements(offering)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "payin amount exceeds maximum")
+	t.Run("payin_amt_exceeds_offering_max", func(t *testing.T) {
+		r, _ := rfq.Create(
+			walletDID,
+			pfiDID.URI,
+			simpleOffering.Metadata.ID,
+			rfq.Payin("99999", "SQUAREPAY"),
+			rfq.Payout("STORED_BALANCE"),
+		)
+
+		err = r.VerifyOfferingRequirements(simpleOffering)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "max amount")
+	})
 }
 
 func TestVerifyOfferingRequirements_PayinLessThanMin(t *testing.T) {
@@ -519,7 +528,7 @@ func TestVerifyOfferingRequirements_VerifyPayinMethodFail_PayinMethodKindNotSupp
 		walletDID,
 		pfiDID.URI,
 		offering.Metadata.ID,
-		rfq.Payin("100","AFTERPAY"),
+		rfq.Payin("100", "AFTERPAY"),
 		rfq.Payout("STORED_BALANCE"),
 	)
 
@@ -858,5 +867,6 @@ func getSimpleOffering(pfiDID did.BearerDID) (offering.Offering, error) {
 		"1.0",
 		offering.From(pfiDID),
 	)
+
 	return offering, err
 }
