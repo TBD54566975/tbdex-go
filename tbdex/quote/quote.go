@@ -57,6 +57,7 @@ func (q Quote) IsValidNext(kind string) bool {
 // Data encapsulates the data content of a  quote.
 type Data struct {
 	ExpiresAt string       `json:"expiresAt,omitempty"`
+	Rate      string       `json:"rate,omitempty"`
 	Payin     QuoteDetails `json:"payin,omitempty"`
 	Payout    QuoteDetails `json:"payout,omitempty"`
 }
@@ -134,7 +135,7 @@ func Parse(data []byte) (Quote, error) {
 }
 
 // Create generates a new Quote with the specified parameters and options.
-func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payout QuoteDetails, opts ...CreateOption) (Quote, error) {
+func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, rate string, payin, payout QuoteDetails, opts ...CreateOption) (Quote, error) {
 	q := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
 		createdAt: time.Now(),
@@ -156,7 +157,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payo
 			ExternalID: q.externalID,
 			Protocol:   q.protocol,
 		},
-		Data: Data{ExpiresAt: expiresAt, Payin: payin, Payout: payout},
+		Data: Data{ExpiresAt: expiresAt, Rate: rate, Payin: payin, Payout: payout},
 	}
 
 	signature, err := crypto.Sign(quote, fromDID)
