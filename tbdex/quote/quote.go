@@ -65,8 +65,9 @@ type Data struct {
 // QuoteDetails describes the relevant information of a currency that is being sent or received
 type QuoteDetails struct {
 	CurrencyCode       string              `json:"currencyCode,omitempty"`
-	Amount             string              `json:"amount,omitempty"`
+	Subtotal           string              `json:"subtotal,omitempty"`
 	Fee                string              `json:"fee,omitempty"`
+	Total              string              `json:"total,omitempty"`
 	PaymentInstruction *PaymentInstruction `json:"paymentInstruction,omitempty"`
 }
 
@@ -233,7 +234,7 @@ func NewQuoteDetails(currencyCode string, amount string, opts ...QuoteDetailsOpt
 	}
 	return QuoteDetails{
 		CurrencyCode:       currencyCode,
-		Amount:             amount,
+		Subtotal:           amount,
 		Fee:                q.Fee,
 		PaymentInstruction: q.PaymentInstruction,
 	}
