@@ -57,7 +57,7 @@ func (q Quote) IsValidNext(kind string) bool {
 // Data encapsulates the data content of a  quote.
 type Data struct {
 	ExpiresAt string       `json:"expiresAt,omitempty"`
-	Rate      string       `json:"rate,omitempty"`
+	Rate      string       `json:"payoutUnitsPerPayinUnit,omitempty"`
 	Payin     QuoteDetails `json:"payin,omitempty"`
 	Payout    QuoteDetails `json:"payout,omitempty"`
 }
