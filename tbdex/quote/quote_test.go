@@ -32,8 +32,8 @@ func TestCreate(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
+		"16.665",
 		quote.NewQuoteDetails(
 			"USD",
 			decimal.RequireFromString("10"),
@@ -60,8 +60,8 @@ func TestUnmarshal(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
+		"16.665",
 		quote.NewQuoteDetails(
 			"USD",
 			decimal.RequireFromString("10"),
@@ -111,8 +111,8 @@ func TestVerify(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
+		"16.665",
 		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
 		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
@@ -131,8 +131,8 @@ func TestVerify_FailsChangedPayload(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
+		"16.665",
 		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
 		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
@@ -153,8 +153,8 @@ func TestVerify_InvalidSignature(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
+		"16.665",
 		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
 		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
@@ -176,8 +176,8 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
+		"16.665",
 		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
 		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
