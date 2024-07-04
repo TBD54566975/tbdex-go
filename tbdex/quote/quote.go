@@ -10,6 +10,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
 	"github.com/TBD54566975/tbdex-go/tbdex/validator"
+	"github.com/shopspring/decimal"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -158,7 +159,12 @@ func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, rate string
 			ExternalID: q.externalID,
 			Protocol:   q.protocol,
 		},
-		Data: Data{ExpiresAt: expiresAt, Rate: rate, Payin: payin, Payout: payout},
+		Data: Data{
+			ExpiresAt: expiresAt,
+			Rate:      rate,
+			Payin:     payin,
+			Payout:    payout,
+		},
 	}
 
 	signature, err := crypto.Sign(quote, fromDID)
@@ -203,7 +209,7 @@ func ExternalID(externalID string) CreateOption {
 }
 
 type quoteDetailsOptions struct {
-	Fee                string
+	Fee                decimal.Decimal
 	PaymentInstruction *PaymentInstruction
 }
 
@@ -211,7 +217,7 @@ type quoteDetailsOptions struct {
 type QuoteDetailsOption func(*quoteDetailsOptions)
 
 // DetailsFee is an option for [NewQuoteDetails] that allows setting a custom fee for a [QuoteDetails].
-func DetailsFee(fee string) QuoteDetailsOption {
+func DetailsFee(fee decimal.Decimal) QuoteDetailsOption {
 	return func(q *quoteDetailsOptions) {
 		q.Fee = fee
 	}
@@ -225,17 +231,24 @@ func DetailsInstruction(p *PaymentInstruction) QuoteDetailsOption {
 	}
 }
 
-// NewQuoteDetails creates a [QuoteDetails] object with the specified currency code, amount,
-// and optional modifications provided through [QuoteDetailsOption] functions.
-func NewQuoteDetails(currencyCode string, amount string, opts ...QuoteDetailsOption) QuoteDetails {
+// NewQuoteDetails creates a [QuoteDetails] object with the specified currency code, subtotal,
+// and optional modifications provided through [QuoteDetailsOption] functions, such as [DetailsFee] or [DetailsInstruction].
+func NewQuoteDetails(currencyCode string, subtotal decimal.Decimal, opts ...QuoteDetailsOption) QuoteDetails {
 	q := quoteDetailsOptions{}
 	for _, opt := range opts {
 		opt(&q)
 	}
+
+	total := subtotal
+	if !q.Fee.IsZero() {
+		total = subtotal.Add(q.Fee)
+	}
+
 	return QuoteDetails{
 		CurrencyCode:       currencyCode,
-		Subtotal:           amount,
-		Fee:                q.Fee,
+		Subtotal:           subtotal.String(),
+		Fee:                q.Fee.String(),
+		Total:              total.String(),
 		PaymentInstruction: q.PaymentInstruction,
 	}
 }

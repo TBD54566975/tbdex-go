@@ -2,10 +2,12 @@ package quote_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/alecthomas/assert/v2"
+	"github.com/shopspring/decimal"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
 
@@ -33,8 +35,12 @@ func TestCreate(t *testing.T) {
 		rfqID.String(),
 		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10", quote.DetailsFee("0.1")),
-		quote.NewQuoteDetails("MXN", "500"),
+		quote.NewQuoteDetails(
+			"USD",
+			decimal.RequireFromString("10"),
+			quote.DetailsFee(decimal.RequireFromString("0.1")),
+		),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -57,14 +63,18 @@ func TestUnmarshal(t *testing.T) {
 		rfqID.String(),
 		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
+		quote.NewQuoteDetails(
+			"USD",
+			decimal.RequireFromString("10"),
+			quote.DetailsFee(decimal.RequireFromString("0.1")),
+		),
 		quote.NewQuoteDetails(
 			"MXN",
-			"500",
-			quote.DetailsFee("0.1"),
-			quote.DetailsInstruction(quote.NewPaymentInstruction(quote.Instruction("use link"))),
-		),
-	)
+			decimal.RequireFromString("500"),
+			quote.DetailsInstruction(
+				quote.NewPaymentInstruction(quote.Instruction("use link")),
+			),
+		))
 	assert.NoError(t, err)
 
 	bytes, err := json.Marshal(q)
@@ -104,8 +114,8 @@ func TestVerify(t *testing.T) {
 		rfqID.String(),
 		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -124,8 +134,8 @@ func TestVerify_FailsChangedPayload(t *testing.T) {
 		rfqID.String(),
 		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -146,8 +156,8 @@ func TestVerify_InvalidSignature(t *testing.T) {
 		rfqID.String(),
 		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -169,8 +179,8 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 		rfqID.String(),
 		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -197,13 +207,16 @@ func TestIsValidNext(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"16.665",
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		"16.665",
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
+	print, err := json.MarshalIndent(q, "", "  ")
+	assert.NoError(t, err)
 
+	fmt.Printf("RESP: %s\n", print)
 	assert.False(t, q.IsValidNext(rfq.Kind))
 	assert.False(t, q.IsValidNext(quote.Kind))
 	assert.False(t, q.IsValidNext(orderstatus.Kind))
