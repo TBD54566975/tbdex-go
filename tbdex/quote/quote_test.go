@@ -2,7 +2,6 @@ package quote_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -213,10 +212,7 @@ func TestIsValidNext(t *testing.T) {
 		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
-	print, err := json.MarshalIndent(q, "", "  ")
-	assert.NoError(t, err)
 
-	fmt.Printf("RESP: %s\n", print)
 	assert.False(t, q.IsValidNext(rfq.Kind))
 	assert.False(t, q.IsValidNext(quote.Kind))
 	assert.False(t, q.IsValidNext(orderstatus.Kind))
