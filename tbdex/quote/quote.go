@@ -10,6 +10,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
 	"github.com/TBD54566975/tbdex-go/tbdex/validator"
+	"github.com/shopspring/decimal"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
 )
@@ -57,6 +58,7 @@ func (q Quote) IsValidNext(kind string) bool {
 // Data encapsulates the data content of a  quote.
 type Data struct {
 	ExpiresAt string       `json:"expiresAt,omitempty"`
+	Rate      string       `json:"payoutUnitsPerPayinUnit,omitempty"`
 	Payin     QuoteDetails `json:"payin,omitempty"`
 	Payout    QuoteDetails `json:"payout,omitempty"`
 }
@@ -64,8 +66,9 @@ type Data struct {
 // QuoteDetails describes the relevant information of a currency that is being sent or received
 type QuoteDetails struct {
 	CurrencyCode       string              `json:"currencyCode,omitempty"`
-	Amount             string              `json:"amount,omitempty"`
+	Subtotal           string              `json:"subtotal,omitempty"`
 	Fee                string              `json:"fee,omitempty"`
+	Total              string              `json:"total,omitempty"`
 	PaymentInstruction *PaymentInstruction `json:"paymentInstruction,omitempty"`
 }
 
@@ -134,7 +137,7 @@ func Parse(data []byte) (Quote, error) {
 }
 
 // Create generates a new Quote with the specified parameters and options.
-func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payout QuoteDetails, opts ...CreateOption) (Quote, error) {
+func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, rate string, payin, payout QuoteDetails, opts ...CreateOption) (Quote, error) {
 	q := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
 		createdAt: time.Now(),
@@ -156,7 +159,12 @@ func Create(fromDID did.BearerDID, to, exchangeID, expiresAt string, payin, payo
 			ExternalID: q.externalID,
 			Protocol:   q.protocol,
 		},
-		Data: Data{ExpiresAt: expiresAt, Payin: payin, Payout: payout},
+		Data: Data{
+			ExpiresAt: expiresAt,
+			Rate:      rate,
+			Payin:     payin,
+			Payout:    payout,
+		},
 	}
 
 	signature, err := crypto.Sign(quote, fromDID)
@@ -201,7 +209,7 @@ func ExternalID(externalID string) CreateOption {
 }
 
 type quoteDetailsOptions struct {
-	Fee                string
+	Fee                decimal.Decimal
 	PaymentInstruction *PaymentInstruction
 }
 
@@ -209,7 +217,7 @@ type quoteDetailsOptions struct {
 type QuoteDetailsOption func(*quoteDetailsOptions)
 
 // DetailsFee is an option for [NewQuoteDetails] that allows setting a custom fee for a [QuoteDetails].
-func DetailsFee(fee string) QuoteDetailsOption {
+func DetailsFee(fee decimal.Decimal) QuoteDetailsOption {
 	return func(q *quoteDetailsOptions) {
 		q.Fee = fee
 	}
@@ -223,17 +231,21 @@ func DetailsInstruction(p *PaymentInstruction) QuoteDetailsOption {
 	}
 }
 
-// NewQuoteDetails creates a [QuoteDetails] object with the specified currency code, amount,
-// and optional modifications provided through [QuoteDetailsOption] functions.
-func NewQuoteDetails(currencyCode string, amount string, opts ...QuoteDetailsOption) QuoteDetails {
+// NewQuoteDetails creates a [QuoteDetails] object with the specified currency code, subtotal,
+// and optional modifications provided through [QuoteDetailsOption] functions, such as [DetailsFee] or [DetailsInstruction].
+func NewQuoteDetails(currencyCode string, subtotal decimal.Decimal, opts ...QuoteDetailsOption) QuoteDetails {
 	q := quoteDetailsOptions{}
 	for _, opt := range opts {
 		opt(&q)
 	}
+
+	total := subtotal.Add(q.Fee)
+
 	return QuoteDetails{
 		CurrencyCode:       currencyCode,
-		Amount:             amount,
-		Fee:                q.Fee,
+		Subtotal:           subtotal.String(),
+		Fee:                q.Fee.String(),
+		Total:              total.String(),
 		PaymentInstruction: q.PaymentInstruction,
 	}
 }

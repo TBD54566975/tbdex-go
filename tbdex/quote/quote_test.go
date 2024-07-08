@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/assert/v2"
+	"github.com/shopspring/decimal"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
 
@@ -32,16 +33,23 @@ func TestCreate(t *testing.T) {
 		walletDID.URI,
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10", quote.DetailsFee("0.1")),
-		quote.NewQuoteDetails("MXN", "500"),
+		"16.665",
+		quote.NewQuoteDetails(
+			"USD",
+			decimal.RequireFromString("10"),
+			quote.DetailsFee(decimal.RequireFromString("0.1")),
+		),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
 	assert.NoError(t, err)
+	assert.NotZero(t, quote.Data.Rate)
 	assert.NotZero(t, quote.Data.ExpiresAt)
 	assert.NotZero(t, quote.Data.Payin)
 	assert.NotZero(t, quote.Data.Payout)
 	assert.NotZero(t, quote.Signature)
+	assert.NotZero(t, quote.Data.Payin.Total)
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -54,14 +62,19 @@ func TestUnmarshal(t *testing.T) {
 		walletDID.URI,
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
+		"16.665",
+		quote.NewQuoteDetails(
+			"USD",
+			decimal.RequireFromString("10"),
+			quote.DetailsFee(decimal.RequireFromString("0.1")),
+		),
 		quote.NewQuoteDetails(
 			"MXN",
-			"500",
-			quote.DetailsFee("0.1"),
-			quote.DetailsInstruction(quote.NewPaymentInstruction(quote.Instruction("use link"))),
-		),
-	)
+			decimal.RequireFromString("500"),
+			quote.DetailsInstruction(
+				quote.NewPaymentInstruction(quote.Instruction("use link")),
+			),
+		))
 	assert.NoError(t, err)
 
 	bytes, err := json.Marshal(q)
@@ -100,8 +113,9 @@ func TestVerify(t *testing.T) {
 		walletDID.URI,
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		"16.665",
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -119,8 +133,9 @@ func TestVerify_FailsChangedPayload(t *testing.T) {
 		walletDID.URI,
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		"16.665",
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -140,8 +155,9 @@ func TestVerify_InvalidSignature(t *testing.T) {
 		walletDID.URI,
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		"16.665",
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -162,8 +178,9 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 		walletDID.URI,
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		"16.665",
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
@@ -191,8 +208,9 @@ func TestIsValidNext(t *testing.T) {
 		walletDID.URI,
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
-		quote.NewQuoteDetails("USD", "10"),
-		quote.NewQuoteDetails("MXN", "500"),
+		"16.665",
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 
