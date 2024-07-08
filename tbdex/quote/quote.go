@@ -239,10 +239,7 @@ func NewQuoteDetails(currencyCode string, subtotal decimal.Decimal, opts ...Quot
 		opt(&q)
 	}
 
-	total := subtotal
-	if !q.Fee.IsZero() {
-		total = subtotal.Add(q.Fee)
-	}
+	total := subtotal.Add(q.Fee)
 
 	return QuoteDetails{
 		CurrencyCode:       currencyCode,

@@ -49,6 +49,7 @@ func TestCreate(t *testing.T) {
 	assert.NotZero(t, quote.Data.Payin)
 	assert.NotZero(t, quote.Data.Payout)
 	assert.NotZero(t, quote.Signature)
+	assert.NotZero(t, quote.Data.Payin.Total)
 }
 
 func TestUnmarshal(t *testing.T) {
