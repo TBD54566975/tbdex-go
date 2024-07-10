@@ -224,8 +224,9 @@ func (rfq *RFQ) VerifyOfferingRequirements(offering _offering.Offering) error {
 	}
 
 	if offering.Data.RequiredClaims != nil {
-		if err := rfq.verifyClaims(offering.Data.RequiredClaims); err != nil {
-			return fmt.Errorf("rfq claims do not satisfy offering's requirements")
+		err := rfq.verifyClaims(offering.Data.RequiredClaims)
+		if err != nil {
+			return fmt.Errorf("rfq claims do not satisfy offering's requirements. %w", err)
 		}
 	}
 
