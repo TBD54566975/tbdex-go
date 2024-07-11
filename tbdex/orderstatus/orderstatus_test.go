@@ -2,6 +2,7 @@ package orderstatus_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
@@ -28,12 +29,20 @@ func TestCreate(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"processing",
+		"PAYIN_INITIATED",
+		orderstatus.Details("CC Payment Initiated"),
 	)
 
 	assert.NoError(t, err)
-	assert.NotZero(t, orderstatus.Data.OrderStatus)
-	assert.Equal(t, "processing", orderstatus.Data.OrderStatus)
+
+	j, err := json.MarshalIndent(orderstatus, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(j))
+
+	assert.NotZero(t, orderstatus.Data.Status)
+	assert.Equal(t, "PAYIN_INITIATED", orderstatus.Data.Status)
 	assert.NotZero(t, orderstatus.Signature)
 }
 
@@ -46,7 +55,7 @@ func TestUnmarshal(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"processing",
+		"PAYIN_INITIATED",
 	)
 
 	bytes, err := json.Marshal(message)
@@ -85,7 +94,7 @@ func TestVerify(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"processing",
+		"PAYIN_INITIATED",
 	)
 
 	err := os.Verify()
@@ -101,10 +110,10 @@ func TestVerify_FailsChangedPayload(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"processing",
+		"PAYIN_INITIATED",
 	)
 
-	os.Data.OrderStatus = "failed"
+	os.Data.Status = "PAYIN_FAILED"
 
 	err := os.Verify()
 	assert.Error(t, err)
@@ -119,7 +128,7 @@ func TestVerify_InvalidSignature(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"processing",
+		"PAYIN_INITIATED",
 	)
 
 	os.Signature = "Invalid"
@@ -138,7 +147,7 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"processing",
+		"PAYIN_INITIATED",
 	)
 
 	toSign, err := os.Digest()
@@ -163,7 +172,7 @@ func TestIsValidNext(t *testing.T) {
 		pfiDID,
 		walletDID.URI,
 		rfqID.String(),
-		"processing",
+		"PAYIN_INITIATED",
 	)
 
 	assert.NoError(t, err)
@@ -171,7 +180,7 @@ func TestIsValidNext(t *testing.T) {
 	assert.False(t, os.IsValidNext(rfq.Kind))
 	assert.False(t, os.IsValidNext(quote.Kind))
 	assert.False(t, os.IsValidNext(order.Kind))
-	
+
 	// orderstatus can only be followed by another orderstatus or close
 	assert.True(t, os.IsValidNext(orderstatus.Kind))
 	assert.True(t, os.IsValidNext(closemsg.Kind))
