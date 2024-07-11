@@ -40,10 +40,13 @@ func Create(payin *PayinDetails, payout *PayoutDetails, rate string, opts ...Cre
 
 	offering := Offering{
 		Metadata: resource.Metadata{
-			Kind:      Kind,
-			ID:        o.id.String(),
-			CreatedAt: o.createdAt.UTC().Format(time.RFC3339),
-			UpdatedAt: o.updatedAt.UTC().Format(time.RFC3339),
+			Kind: Kind,
+			// ID:        o.id.String(),
+			// CreatedAt: o.createdAt.UTC().Format(time.RFC3339),
+			// UpdatedAt: o.updatedAt.UTC().Format(time.RFC3339),
+			ID:        "offering_01j2gw7tdkej6scmjvt5ew2rjk",
+			CreatedAt: "2024-07-11T12:28:09Z",
+			UpdatedAt: "2024-07-11T12:28:09Z",
 			Protocol:  o.protocol,
 		},
 		Data: Data{
