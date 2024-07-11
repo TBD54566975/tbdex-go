@@ -3,6 +3,7 @@ package crypto
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -44,6 +45,15 @@ func DigestJSON(payload any) ([]byte, error) {
 		return nil, fmt.Errorf("failed to canonicalize payload: %w", err)
 	}
 
+	// var out bytes.Buffer
+	// err = json.Indent(&out, canonicalized, "", "  ")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to indent canonicalized payload: %w", err)
+	// }
+	fmt.Println("canonicalized payload for digest")
+	fmt.Println(string(canonicalized))
+	// fmt.Println(out.String())
+
 	hash := sha256.Sum256(canonicalized)
 
 	return hash[:], nil
@@ -70,6 +80,8 @@ func VerifySignature(digester Digester, signature string) (*jws.Decoded, error) 
 	}
 
 	payload, err := digester.Digest()
+	fmt.Println("digest:")
+	fmt.Println(hex.EncodeToString(payload))
 	if err != nil {
 		return nil, err
 	}
