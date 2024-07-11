@@ -25,6 +25,7 @@ func TestCreate(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"1.0",
+		offering.NewCancellationDetails(false),
 		offering.From(pfiDID),
 	)
 
@@ -45,6 +46,7 @@ func TestSign(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"1.0",
+		offering.NewCancellationDetails(false),
 		offering.From(bearerDID),
 	)
 	assert.NoError(t, err)
@@ -81,6 +83,7 @@ func TestUnmarshal(t *testing.T) {
 			)},
 		),
 		"1.0",
+		offering.NewCancellationDetails(false),
 		offering.From(bearerDID),
 	)
 
@@ -126,6 +129,7 @@ func TestVerify(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"60000.00",
+		offering.NewCancellationDetails(false),
 		offering.From(bearerDID),
 	)
 
@@ -149,6 +153,7 @@ func TestVerify_InvalidSignature(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"60000.00",
+		offering.NewCancellationDetails(false),
 		offering.From(bearerDID),
 	)
 
@@ -174,6 +179,7 @@ func TestVerify_SignedWithWrongDID(t *testing.T) {
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 		),
 		"60000.00",
+		offering.NewCancellationDetails(false),
 		offering.From(bearerDID),
 	)
 

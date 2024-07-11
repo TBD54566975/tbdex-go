@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
@@ -18,7 +19,7 @@ const Kind = "orderstatus"
 
 // ValidNext returns the valid next message kinds that can follow an orderstatus
 func ValidNext() []string {
-	return []string{Kind, closemsg.Kind}
+	return []string{Kind, closemsg.Kind, cancel.Kind}
 }
 
 // OrderStatus represents an order status message within the exchange.
@@ -40,7 +41,7 @@ func (os OrderStatus) GetKind() string {
 
 // GetValidNext returns the valid next message kinds that can follow an orderstatus
 func (os OrderStatus) GetValidNext() []string {
-	return []string{Kind, closemsg.Kind}
+	return ValidNext()
 }
 
 // IsValidNext checks if the kind is a valid next message kind for an orderstatus

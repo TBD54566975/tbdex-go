@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
@@ -24,7 +25,7 @@ const Kind = "rfq"
 
 // ValidNext returns the valid message kinds that can follow a RFQ.
 func ValidNext() []string {
-	return []string{quote.Kind, closemsg.Kind}
+	return []string{quote.Kind, closemsg.Kind, cancel.Kind}
 }
 
 // RFQ represents a request for quote message within the exchange.

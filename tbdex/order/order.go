@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
@@ -43,7 +44,7 @@ func (o Order) GetKind() string {
 
 // GetValidNext returns the valid message kinds that can follow an order.
 func (o Order) GetValidNext() []string {
-	return []string{orderstatus.Kind, closemsg.Kind}
+	return []string{orderstatus.Kind, closemsg.Kind, cancel.Kind}
 }
 
 // IsValidNext checks if the kind is a valid next message kind for an order.
@@ -55,6 +56,7 @@ func (o Order) IsValidNext(kind string) bool {
 	}
 	return false
 }
+
 // Data represents the data field of an order message.
 // Note that this is intentionally left empty as per the spec
 type Data struct{}
