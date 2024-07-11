@@ -222,3 +222,13 @@ func TestIsValidNext(t *testing.T) {
 	assert.True(t, q.IsValidNext(order.Kind))
 	assert.True(t, q.IsValidNext(closemsg.Kind))
 }
+
+func Test_TestVector(t *testing.T) {
+	quoteStr := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Im83eG85MkxXOWNiZGUtOWRMZUE1ZFhDVjBneUdWVnVtb0xfZVlmVFhtWGsifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Ii12V195SDFMMWkzUW5vVlNGcXNrMDRGWGd4YVhhRGtHOEV1cF96MmxtWlUifQ","kind":"quote","id":"quote_01j2f22daeefet5g9ynxg5stm3","exchangeId":"rfq_01j2f22daeefeaaqbp61thnxpb","createdAt":"2024-07-10T19:31:34Z","protocol":"1.0"},"data":{"expiresAt":"2024-07-10T19:31:34Z","payoutUnitsPerPayinUnit":"16.665","payin":{"currencyCode":"USD","subtotal":"10","fee":"0","total":"10","paymentInstruction":{"instruction":"use link provided"}},"payout":{"currencyCode":"MXN","subtotal":"500","fee":"0","total":"500","paymentInstruction":{"instruction":"SPEI transfer"}}},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJbTgzZUc4NU1reFhPV05pWkdVdE9XUk1aVUUxWkZoRFZqQm5lVWRXVm5WdGIweGZaVmxtVkZodFdHc2lmUSMwIn0..SYMZMQwrThsrNHXxHnXoiozCyvtePVOy3kHzQ0Pj3LYYf0h-l6PC2GLblWEtGVJrz27Ct_VdqUnOvm7nF6NLAA"}`
+	var quote quote.Quote
+	err := json.Unmarshal([]byte(quoteStr), &quote)
+	assert.NoError(t, err)
+
+	err = quote.Verify()
+	assert.NoError(t, err)
+}
