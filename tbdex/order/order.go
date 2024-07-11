@@ -20,7 +20,7 @@ const Kind = "order"
 
 // ValidNext returns the valid message kinds that can follow an order.
 func ValidNext() []string {
-	return []string{orderstatus.Kind, closemsg.Kind}
+	return []string{orderstatus.Kind, closemsg.Kind, cancel.Kind}
 }
 
 // Order represents a tbdex [order] message.
@@ -44,7 +44,7 @@ func (o Order) GetKind() string {
 
 // GetValidNext returns the valid message kinds that can follow an order.
 func (o Order) GetValidNext() []string {
-	return []string{orderstatus.Kind, closemsg.Kind, cancel.Kind}
+	return ValidNext()
 }
 
 // IsValidNext checks if the kind is a valid next message kind for an order.
