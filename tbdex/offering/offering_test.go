@@ -2,6 +2,7 @@ package offering_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,27 +10,98 @@ import (
 	"github.com/alecthomas/assert/v2"
 	"github.com/tbd54566975/web5-go/dids/didjwk"
 	"github.com/tbd54566975/web5-go/jws"
+	"github.com/tbd54566975/web5-go/pexv2"
 )
 
 func TestCreate(t *testing.T) {
 	pfiDID, err := didjwk.Create()
 	assert.NoError(t, err)
 
-	_, err = offering.Create(
+	pd := pexv2.PresentationDefinition{
+		ID:      "foo",
+		Name:    "kyccredential",
+		Purpose: "To verify the identity of the user",
+		InputDescriptors: []pexv2.InputDescriptor{
+			{
+				ID:      "1",
+				Name:    "KYC Information",
+				Purpose: "To verify the identity of the user",
+				Constraints: pexv2.Constraints{
+					Fields: []pexv2.Field{
+						{
+							Path: []string{"$.type[0]"},
+							Filter: &pexv2.Filter{
+								Type:    "string",
+								Pattern: "KYC",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	o, err := offering.Create(
 		offering.NewPayin(
 			"USD",
-			[]offering.PayinMethod{offering.NewPayinMethod("SQUAREPAY")},
+			[]offering.PayinMethod{
+				offering.NewPayinMethod(
+					"DEBIT_CARD",
+					offering.RequiredDetails(`{
+					"$schema": "http://json-schema.org/draft-07/schema#",
+					"type": "object",
+					"properties": {
+						"cardNumber": {
+						"type": "string",
+						"description": "The 16-digit debit card number",
+						"minLength": 16,
+						"maxLength": 16
+						},
+						"expiryDate": {
+						"type": "string",
+						"description": "The expiry date of the card in MM/YY format",
+						"pattern": "^(0[1-9]|1[0-2])\\/([0-9]{2})$"
+						},
+						"cardHolderName": {
+						"type": "string",
+						"description": "Name of the cardholder as it appears on the card"
+						},
+						"cvv": {
+						"type": "string",
+						"description": "The 3-digit CVV code",
+						"minLength": 3,
+						"maxLength": 3
+						}
+					},
+					"required": [
+						"cardNumber",
+						"expiryDate",
+						"cardHolderName",
+						"cvv"
+					],
+					"additionalProperties": false
+					}`))},
+			offering.Min("0.1"),
+			offering.Max("1000"),
 		),
 		offering.NewPayout(
 			"USDC",
 			[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
+			offering.Max("5000"),
 		),
 		"1.0",
 		offering.NewCancellationDetails(false),
 		offering.From(pfiDID),
+		offering.RequiredClaims(pd),
 	)
 
 	assert.NoError(t, err)
+
+	j, err := json.MarshalIndent(o, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(j))
 }
 
 func TestSign(t *testing.T) {
