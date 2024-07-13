@@ -445,6 +445,7 @@ func TestVerifyOfferingRequirements(t *testing.T) {
 				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 			),
 			"1.0",
+			offering.NewCancellationDetails(false),
 			offering.From(pfiDID),
 		)
 
@@ -621,6 +622,7 @@ func TestVerifyOfferingRequirements(t *testing.T) {
 				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 			),
 			"16.0",
+			offering.NewCancellationDetails(false),
 			offering.From(pfiDID),
 		)
 		assert.NoError(t, err)
@@ -666,6 +668,7 @@ func TestVerifyOfferingRequirements(t *testing.T) {
 				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 			),
 			"1.0",
+			offering.NewCancellationDetails(false),
 			offering.From(pfiDID),
 		)
 		assert.NoError(t, err)
@@ -723,6 +726,7 @@ func TestVerifyOfferingRequirements(t *testing.T) {
 				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 			),
 			"1.0",
+			offering.NewCancellationDetails(false),
 			offering.From(pfiDID),
 			offering.RequiredClaims(pd),
 		)
@@ -778,6 +782,7 @@ func TestVerifyOfferingRequirements(t *testing.T) {
 				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 			),
 			"1.0",
+			offering.NewCancellationDetails(false),
 			offering.From(pfiDID),
 			offering.RequiredClaims(pd),
 		)
@@ -835,6 +840,7 @@ func TestVerifyOfferingRequirements(t *testing.T) {
 				[]offering.PayoutMethod{offering.NewPayoutMethod("STORED_BALANCE", 20*time.Minute)},
 			),
 			"1.0",
+			offering.NewCancellationDetails(false),
 			offering.From(pfiDID),
 			offering.RequiredClaims(pd),
 		)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
@@ -20,7 +21,7 @@ const Kind = "quote"
 
 // ValidNext returns the valid message kinds that can follow a Quote.
 func ValidNext() []string {
-	return []string{order.Kind, closemsg.Kind}
+	return []string{order.Kind, closemsg.Kind, cancel.Kind}
 }
 
 // Quote represents a quote message within the exchange.
