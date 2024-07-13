@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	libclose "github.com/TBD54566975/tbdex-go/tbdex/closemsg"
+	libcancel "github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
 	liborder "github.com/TBD54566975/tbdex-go/tbdex/order"
 	liborderstatus "github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
@@ -78,6 +79,12 @@ func UnmarshalMessage(input []byte) (Message, error) {
 		}
 
 		return closemsg, nil
+	case libcancel.Kind:
+		var cancel libcancel.Cancel
+		if err := json.Unmarshal(input, &cancel); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal cancel: %w", err)
+		}
+		return cancel, nil
 	default:
 		return nil, fmt.Errorf("unknown message kind: %v", m.Metadata.Kind)
 	}
@@ -136,6 +143,13 @@ func ParseMessage(input []byte) (Message, error) {
 		}
 
 		return closemsg, nil
+	case libcancel.Kind:
+		cancel, err := libcancel.Parse(input)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse cancel: %w", err)
+		}
+
+		return cancel, nil
 	default:
 		return nil, fmt.Errorf("unknown message kind: %v", m.Metadata.Kind)
 	}
