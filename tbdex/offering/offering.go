@@ -29,6 +29,13 @@ type Data struct {
 	Payin          *PayinDetails                 `json:"payin,omitempty"`
 	Payout         *PayoutDetails                `json:"payout,omitempty"`
 	RequiredClaims *pexv2.PresentationDefinition `json:"requiredClaims,omitempty"`
+	Cancellation   *Cancellation                 `json:"cancellation,omitempty"`
+}
+
+type Cancellation struct {
+	Enabled  bool   `json:"enabled"`
+	TermsURL string `json:"termsUrl,omitempty"`
+	Terms    string `json:"terms,omitempty"`
 }
 
 // PayinDetails represents the details of the payin part of an Offering.

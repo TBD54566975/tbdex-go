@@ -17,7 +17,7 @@ import (
 // An Offering is a resource created by a PFI to define requirements for a given currency pair offered for exchange.
 //
 // [Offering]: https://github.com/TBD54566975/tbdex/tree/main/specs/protocol#offering
-func Create(payin *PayinDetails, payout *PayoutDetails, rate string, opts ...CreateOption) (Offering, error) {
+func Create(payin *PayinDetails, payout *PayoutDetails, rate string, cancellationDetails *Cancellation, opts ...CreateOption) (Offering, error) {
 	o := createOptions{
 		id:          typeid.Must(typeid.New[ID]()),
 		createdAt:   time.Now(),
@@ -52,6 +52,7 @@ func Create(payin *PayinDetails, payout *PayoutDetails, rate string, opts ...Cre
 			Rate:           rate,
 			Description:    o.description,
 			RequiredClaims: o.requiredClaims,
+			Cancellation:   cancellationDetails,
 		},
 	}
 
@@ -62,6 +63,19 @@ func Create(payin *PayinDetails, payout *PayoutDetails, rate string, opts ...Cre
 	}
 
 	return offering, nil
+}
+
+func NewCancellationDetails(enabled bool, opts ...CancellationDetailOption) *Cancellation {
+	o := cancellationDetailOptions{}
+	for _, opt := range opts {
+		opt(&o)
+	}
+
+	return &Cancellation{
+		Enabled:  enabled,
+		TermsURL: o.TermsURL,
+		Terms:    o.Terms,
+	}
 }
 
 // NewPayin creates PayinDetails
@@ -180,6 +194,25 @@ func Description(d string) CreateOption {
 func From(d did.BearerDID) CreateOption {
 	return func(o *createOptions) {
 		o.from = &d
+	}
+}
+
+type cancellationDetailOptions struct {
+	TermsURL string
+	Terms    string
+}
+
+type CancellationDetailOption func(*cancellationDetailOptions)
+
+func TermsURL(url string) CancellationDetailOption {
+	return func(o *cancellationDetailOptions) {
+		o.TermsURL = url
+	}
+}
+
+func Terms(terms string) CancellationDetailOption {
+	return func(o *cancellationDetailOptions) {
+		o.Terms = terms
 	}
 }
 
