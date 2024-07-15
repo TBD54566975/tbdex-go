@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex"
+	"github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
@@ -63,6 +64,16 @@ func TestParseMessage(t *testing.T) {
 		assert.True(t, ok)
 		assert.NotZero(t, closemsg)
 	})
+
+	t.Run("cancel", func(t *testing.T) {
+		vector := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6InFSUG1TSnRnUmhocklldHphSG1mUnJyaXVMaXhqS29EeDhNeFduREZRaU0ifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImxqaDdqbUs2WFY2aVktUnZBRVQ1cEhva21Zem9jZnFhVmc0ODc0MHlwOHcifQ","kind":"cancel","id":"cancel_01j2fejf5eenyrt6d6xjdkh7ed","exchangeId":"rfq_01j2fejf5eeny8gycyf1ft8x3j","createdAt":"2024-07-10T23:10:03Z","protocol":"1.0"},"data":{"reason":"I don't want to do this anymore"},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJbkZTVUcxVFNuUm5VbWhvY2tsbGRIcGhTRzFtVW5KeWFYVk1hWGhxUzI5RWVEaE5lRmR1UkVaUmFVMGlmUSMwIn0..sn8IoOx3bmAeaaZPPY3i2BqKS0h9Eydrp_Zkx8czQCmOvhNquXBKxMqH2nd2nsK5XuO_Poqv70aHDCAJblCeCg"}`
+		msg, err := tbdex.ParseMessage([]byte(vector))
+		assert.NoError(t, err)
+
+		cancel, ok := msg.(cancel.Cancel)
+		assert.True(t, ok)
+		assert.NotZero(t, cancel)
+	})
 }
 
 func TestUnmarshalMessage(t *testing.T) {
@@ -115,5 +126,15 @@ func TestUnmarshalMessage(t *testing.T) {
 		closemsg, ok := msg.(closemsg.Close)
 		assert.True(t, ok)
 		assert.NotZero(t, closemsg)
+	})
+
+	t.Run("cancel", func(t *testing.T) {
+		vector := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6InFSUG1TSnRnUmhocklldHphSG1mUnJyaXVMaXhqS29EeDhNeFduREZRaU0ifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImxqaDdqbUs2WFY2aVktUnZBRVQ1cEhva21Zem9jZnFhVmc0ODc0MHlwOHcifQ","kind":"cancel","id":"cancel_01j2fejf5eenyrt6d6xjdkh7ed","exchangeId":"rfq_01j2fejf5eeny8gycyf1ft8x3j","createdAt":"2024-07-10T23:10:03Z","protocol":"1.0"},"data":{"reason":"I don't want to do this anymore"},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJbkZTVUcxVFNuUm5VbWhvY2tsbGRIcGhTRzFtVW5KeWFYVk1hWGhxUzI5RWVEaE5lRmR1UkVaUmFVMGlmUSMwIn0..sn8IoOx3bmAeaaZPPY3i2BqKS0h9Eydrp_Zkx8czQCmOvhNquXBKxMqH2nd2nsK5XuO_Poqv70aHDCAJblCeCg"}`
+		msg, err := tbdex.UnmarshalMessage([]byte(vector))
+		assert.NoError(t, err)
+
+		cancel, ok := msg.(cancel.Cancel)
+		assert.True(t, ok)
+		assert.NotZero(t, cancel)
 	})
 }
