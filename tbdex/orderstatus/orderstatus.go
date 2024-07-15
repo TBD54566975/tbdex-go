@@ -54,9 +54,28 @@ func (os OrderStatus) IsValidNext(kind string) bool {
 	return false
 }
 
+type Status string
+
+const (
+	PAYIN_PENDING    Status = "PAYIN_PENDING"
+	PAYIN_INITIATED  Status = "PAYIN_INITIATED"
+	PAYIN_SETTLED    Status = "PAYIN_SETTLED"
+	PAYIN_FAILED     Status = "PAYIN_FAILED"
+	PAYIN_EXPIRED    Status = "PAYIN_EXPIRED"
+	PAYOUT_PENDING   Status = "PAYOUT_PENDING"
+	PAYOUT_INITIATED Status = "PAYOUT_INITIATED"
+	PAYOUT_SETTLED   Status = "PAYOUT_SETTLED"
+	PAYOUT_FAILED    Status = "PAYOUT_FAILED"
+	REFUND_PENDING   Status = "REFUND_PENDING"
+	REFUND_INITIATED Status = "REFUND_INITIATED"
+	REFUND_SETTLED   Status = "REFUND_SETTLED"
+	REFUND_FAILED    Status = "REFUND_FAILED"
+)
+
 // Data encapsulates the data content of an order status.
 type Data struct {
-	OrderStatus string `json:"orderStatus,omitempty"`
+	Status  Status `json:"status,omitempty"`
+	Details string `json:"details,omitempty"`
 }
 
 // Digest computes a hash of the message
@@ -119,7 +138,7 @@ func Parse(data []byte) (OrderStatus, error) {
 }
 
 // Create creates a new OrderStatus message.
-func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...CreateOption) (OrderStatus, error) {
+func Create(fromDID did.BearerDID, to, exchangeID string, status Status, opts ...CreateOption) (OrderStatus, error) {
 	o := createOptions{
 		id:        typeid.Must(typeid.WithPrefix(Kind)).String(),
 		createdAt: time.Now(),
@@ -141,7 +160,7 @@ func Create(fromDID did.BearerDID, to, exchangeID, orderStatus string, opts ...C
 			ExternalID: o.externalID,
 			Protocol:   o.protocol,
 		},
-		Data: Data{OrderStatus: orderStatus},
+		Data: Data{Status: status, Details: o.detail},
 	}
 
 	signature, err := crypto.Sign(os, fromDID)
@@ -159,6 +178,7 @@ type createOptions struct {
 	createdAt  time.Time
 	protocol   string
 	externalID string
+	detail     string
 }
 
 // CreateOption defines a type for functions that can modify the createOptions struct.
@@ -182,6 +202,12 @@ func CreatedAt(t time.Time) CreateOption {
 func ExternalID(externalID string) CreateOption {
 	return func(q *createOptions) {
 		q.externalID = externalID
+	}
+}
+
+func Details(details string) CreateOption {
+	return func(q *createOptions) {
+		q.detail = details
 	}
 }
 
