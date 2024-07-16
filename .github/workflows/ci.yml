@@ -27,6 +27,13 @@ jobs:
 
       - name: Test
         run: just test
+
+      - name: Upload Tbdex Go Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-test-results
+          path: '**/report.xml'
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
