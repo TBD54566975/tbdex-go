@@ -28,6 +28,9 @@ jobs:
       - name: Test
         run: just test
 
+      - name: Test With XML Reporting
+        run: just test-xml
+
       - name: Upload Tbdex Go Test Results
         uses: actions/upload-artifact@v3
         with:
