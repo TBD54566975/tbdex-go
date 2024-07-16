@@ -22,14 +22,15 @@ jobs:
         with:
           cache: true
 
+      - name: Install go-junit-report
+        run: go install github.com/jstemmer/go-junit-report@latest
+
       - name: Build Cache
         uses: ./.github/actions/build-cache
 
-      - name: Test
-        run: just test
-
-      - name: Test With XML Reporting
-        run: just test-xml
+      - name: Run Tests with XML Reporting
+        run: |
+          just test-xml
 
       - name: Upload Tbdex Go Test Results
         uses: actions/upload-artifact@v3
