@@ -9,7 +9,8 @@ test:
 
 # Run all tests with XML reporting.
 test-xml:
-  find . -name go.mod | grep -v /_ | xargs -n1 dirname | xargs -n1 -I{} sh -c 'cd {} && go test -v 2>&1 ./... | go-junit-report -set-exit-code > report.xml && sed -i "" "s/name=\"github.com\/TBD54566975\/tbdex-go\/tbdex\">/name=\"TbdexTestVector\">/g" report.xml'
+  find . -name go.mod | grep -v /_ | xargs -n1 dirname | xargs -n1 -I{} sh -c 'cd {} && go test -v 2>&1 ./...| go-junit-report -set-exit-code > report.xml'
+  find . -name report.xml | xargs sed -i "s/name=\"github.com\/TBD54566975\/tbdex-go\/tbdex\">/name=\"TbdexTestVector\">/g"
 
 lint:
   @echo "Running linter..."
