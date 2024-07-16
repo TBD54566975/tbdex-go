@@ -38,7 +38,7 @@ func readVector(filename string) vector {
 	return v
 }
 
-func TestOfferingVectors(t *testing.T) {
+func TestOfferingTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-offering.json")
 	res := offering.Offering{}
 	err := res.Parse([]byte(vector.Input))
@@ -46,14 +46,14 @@ func TestOfferingVectors(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestBalanceVectors(t *testing.T) {
+func TestBalanceTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-balance.json")
 	_, err := balance.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestRFQVectors(t *testing.T) {
+func TestRFQTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-rfq.json")
 	_, err := rfq.Parse([]byte(vector.Input))
 
@@ -65,35 +65,35 @@ func TestRFQVectors(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestQuoteVectors(t *testing.T) {
+func TestQuoteTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-quote.json")
 	_, err := quote.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestOrderVectors(t *testing.T) {
+func TestOrderTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-order.json")
 	_, err := order.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestOrderStatusVectors(t *testing.T) {
+func TestOrderStatusTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-orderstatus.json")
 	_, err := orderstatus.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestCloseVectors(t *testing.T) {
+func TestCloseTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-close.json")
 	_, err := closemsg.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestCancelVectors(t *testing.T) {
+func TestCancelTbdexTestVectors(t *testing.T) {
 	vector := readVector("parse-cancel.json")
 	_, err := cancel.Parse([]byte(vector.Input))
 
