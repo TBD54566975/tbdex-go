@@ -28,9 +28,15 @@ jobs:
       - name: Build Cache
         uses: ./.github/actions/build-cache
 
-      - name: Run Tests with XML Reporting
+      - name: Run all tests with XML reporting
         run: |
-          just test-xml
+          find . -name go.mod | grep -v /_ | xargs -n1 dirname | while read dir; do
+            echo "Running tests in $dir"
+            cd "$dir"
+            go test -v 2>&1 ./... | go-junit-report -set-exit-code > report.xml || { echo "Test failed in $dir"; exit 123; }
+            cd -
+          done
+          find . -name report.xml | xargs sed -i "s/name=\"github.com\/TBD54566975\/tbdex-go\/tbdex\">/name=\"TbdexTestVectorsProtocol\">/g"
 
       - name: Upload Tbdex Go Test Results
         uses: actions/upload-artifact@v3
