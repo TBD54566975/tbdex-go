@@ -228,9 +228,10 @@ func TestIsValidNext(t *testing.T) {
 	assert.False(t, oi.IsValidNext(rfq.Kind))
 	assert.False(t, oi.IsValidNext(quote.Kind))
 	assert.False(t, oi.IsValidNext(order.Kind))
-	assert.False(t, oi.IsValidNext(orderstatus.Kind))
 
-	// orderinstructions can only be followed by cancel or close
+	// orderinstructions can only be followed by orderstatus or cancel or close
+	assert.True(t, oi.IsValidNext(orderstatus.Kind))
 	assert.True(t, oi.IsValidNext(cancel.Kind))
 	assert.True(t, oi.IsValidNext(closemsg.Kind))
+
 }

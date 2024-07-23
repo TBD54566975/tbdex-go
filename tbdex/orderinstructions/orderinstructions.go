@@ -9,6 +9,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/crypto"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	"github.com/TBD54566975/tbdex-go/tbdex/validator"
 	"github.com/tbd54566975/web5-go/dids/did"
 	"go.jetpack.io/typeid"
@@ -19,7 +20,7 @@ const Kind = "orderinstructions"
 
 // ValidNext returns the valid message kinds that can follow an orderinstructions.
 func ValidNext() []string {
-	return []string{closemsg.Kind, cancel.Kind}
+	return []string{orderstatus.Kind, closemsg.Kind, cancel.Kind}
 }
 
 // OrderInstructions represents a tbdex [orderinstructions] message.
