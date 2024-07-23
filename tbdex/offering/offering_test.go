@@ -2,7 +2,6 @@ package offering_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -41,7 +40,7 @@ func TestCreate(t *testing.T) {
 		},
 	}
 
-	o, err := offering.Create(
+	_, err = offering.Create(
 		offering.NewPayin(
 			"USD",
 			[]offering.PayinMethod{
@@ -96,12 +95,6 @@ func TestCreate(t *testing.T) {
 	)
 
 	assert.NoError(t, err)
-
-	j, err := json.MarshalIndent(o, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(j))
 }
 
 func TestSign(t *testing.T) {

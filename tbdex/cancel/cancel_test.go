@@ -119,12 +119,6 @@ func TestCreate(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	j, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(j))
-
 	assert.NotZero(t, c)
 	assert.NotZero(t, c.Metadata.ID)
 	assert.Equal(t, alice.URI, c.Metadata.From)

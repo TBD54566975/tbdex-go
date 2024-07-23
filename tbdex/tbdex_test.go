@@ -7,6 +7,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderinstructions"
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
@@ -26,7 +27,7 @@ func TestParseMessage(t *testing.T) {
 	})
 
 	t.Run("quote", func(t *testing.T) {
-		vector := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlZGZ0JFaWhFMnMxVlJnRXU3N0JlU2w4MmNRdWtoMExYbFhPVGptN2lXdkkifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlJWSWNLclhnd1FKckJ6QnhPRWFkZnFyMWJaRDRhSDlMcHpSS1cxN09BYlkifQ","kind":"quote","id":"quote_01j1y0epn3eb9bhtf52nr9hjyr","exchangeId":"rfq_01j1y0epn3eb8r7nkq6x3f3zhq","createdAt":"2024-07-04T04:36:15Z","protocol":"1.0"},"data":{"expiresAt":"2024-07-04T04:36:15Z","payoutUnitsPerPayinUnit":"16.665","payin":{"currencyCode":"USD","subtotal":"10","fee":"0","total":"10"},"payout":{"currencyCode":"MXN","subtotal":"500","fee":"0","total":"500"}},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJbFpHWjBKRmFXaEZNbk14VmxKblJYVTNOMEpsVTJ3NE1tTlJkV3RvTUV4WWJGaFBWR3B0TjJsWGRra2lmUSMwIn0..40Ud5k5dviIDqmniJejKLC9N7rtF9jgztThwyux3xsJBKTX76lHy-LHPE9ORqvse_wPA2OTMsu4STyHPBA50AQ"}`
+		vector := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Ind2b1dtcUx6cC1OSlhwemxTNWYzUEpsaHFsMThaOXZRR1FpQTRRRE9qckkifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IjBXS1p0aEpla0U2UFdXcVZTQXBaVzB5dEoxOHEzVzU1cm13RmJNWktRamcifQ","kind":"quote","id":"quote_01j3erbrnyf4z9g77t225ekavn","exchangeId":"rfq_01j3erbrnyf4yr5p7xwm0b7dk3","createdAt":"2024-07-23T02:57:37Z","protocol":"1.0"},"data":{"expiresAt":"2024-07-23T02:57:37Z","payoutUnitsPerPayinUnit":"16.665","payin":{"currencyCode":"USD","subtotal":"10","fee":"0.1","total":"10.1"},"payout":{"currencyCode":"MXN","subtotal":"500","fee":"0","total":"500"}},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJbmQyYjFkdGNVeDZjQzFPU2xod2VteFROV1l6VUVwc2FIRnNNVGhhT1haUlIxRnBRVFJSUkU5cWNra2lmUSMwIn0..sK85SbI4QgrHXOHMtCWnECmbMjHxzv3ID6zhU-84PkeHOrdyWPF5nFRMCssjN2YQNc65pK2vJBOwFEwwA_dsCQ"}`
 		msg, err := tbdex.ParseMessage([]byte(vector))
 		assert.NoError(t, err)
 
@@ -43,6 +44,16 @@ func TestParseMessage(t *testing.T) {
 		order, ok := msg.(order.Order)
 		assert.True(t, ok)
 		assert.NotZero(t, order)
+	})
+
+	t.Run("orderinstructions", func(t *testing.T) {
+		vector := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IjZ6eU5iUVlKNm9CY1VUS0J1enRSdTE5bmQySVVmU0tqMFVHUy1nU2I5eWMifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6InVxSENzMjJsMFgtbUFoQzR5ZmhFZm9mYVRrMDBFQktkaW5pbEJPR3p4c2MifQ","kind":"orderinstructions","id":"orderinstructions_01j3erdh2ceq5rqdzcdc3xysam","exchangeId":"rfq_01j3erdh2ceq59brmcgd1vqd2y","createdAt":"2024-07-23T02:58:35Z","protocol":"1.0"},"data":{"payin":{"link":"http://example.com/payin/123","instruction":"deducted from stored balance"},"payout":{"link":"http://example.com/payout/123","instruction":"sent to your bank account"}},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJalo2ZVU1aVVWbEtObTlDWTFWVVMwSjFlblJTZFRFNWJtUXlTVlZtVTB0cU1GVkhVeTFuVTJJNWVXTWlmUSMwIn0..d-hh6ydEq0-w7LY4BB0Sseq3-GFEvo5BBErDauXQKto_cO72ztdqeDTiZr1I-uKrqobUV_fV4d-3S9GqvTEdBw"}`
+		msg, err := tbdex.ParseMessage([]byte(vector))
+		assert.NoError(t, err)
+
+		oi, ok := msg.(orderinstructions.OrderInstructions)
+		assert.True(t, ok)
+		assert.NotZero(t, oi)
 	})
 
 	t.Run("orderstatus", func(t *testing.T) {
@@ -89,7 +100,7 @@ func TestUnmarshalMessage(t *testing.T) {
 	})
 
 	t.Run("quote", func(t *testing.T) {
-		vector := `{"metadata":{"kind":"quote","to":"did:jwk:eyJrdHkiOiJPS1AiLCJhbGciOiJFZERTQSIsImtpZCI6Im9NQzVLd0hPS1kzd3NUV0dzVExsVldGcVRxV3c4SGlSVEtIZnAxOGxRWG8iLCJjcnYiOiJFZDI1NTE5IiwieCI6IlhyNTljd004US1UZV9hOU5uZ19Vc2RKYlo2SnVicHpSMk5zR2VTeU5pZVEifQ","from":"did:jwk:eyJrdHkiOiJPS1AiLCJhbGciOiJFZERTQSIsImtpZCI6ImV4UFJlNlJ0NDNhcWF6cFFJMWo0dlYwNGpaWmhhZndEcjFFSGNwNWtDZDgiLCJjcnYiOiJFZDI1NTE5IiwieCI6IjRDU3c1clAxbTNDSk1udHBiak5Zdm9GYjZQMU5wZ0ctR2pYRnBrMERDZVUifQ","id":"quote_01hx0b1nmqejkb17w0zaa40bvs","exchangeId":"rfq_01hx0b1nmkeq8sjaskn2bhgc7m","createdAt":"2024-05-03T23:01:22.198580Z","protocol":"1.0"},"data":{"expiresAt":"2022-01-01T00:00:00Z","payoutUnitsPerPayinUnit":"0.00001681351","payin":{"currencyCode":"AUD","subtotal":"100","fee":"0.01","total":"100.01","paymentInstruction":{"link":"https://block.xyz","instruction":"payin instruction"}},"payout":{"currencyCode":"BTC","subtotal":"0.12","fee":"0.02","total":"0.14","paymentInstruction":{"link":"https://block.xyz","instruction":"payout instruction"}}},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmhiR2NpT2lKRlpFUlRRU0lzSW10cFpDSTZJbVY0VUZKbE5sSjBORE5oY1dGNmNGRkpNV28wZGxZd05HcGFXbWhoWm5kRWNqRkZTR053Tld0RFpEZ2lMQ0pqY25ZaU9pSkZaREkxTlRFNUlpd2llQ0k2SWpSRFUzYzFjbEF4YlRORFNrMXVkSEJpYWs1WmRtOUdZalpRTVU1d1owY3RSMnBZUm5Cck1FUkRaVlVpZlEjMCJ9..H_LuRN3wdYhH29HSjrV4SzSa4LHY-f71BouYutWXEcSS4hOASC1iCFN6wZWCnI65LFWZDdLXK8fzRGHlACjNAg"}`
+		vector := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Ind2b1dtcUx6cC1OSlhwemxTNWYzUEpsaHFsMThaOXZRR1FpQTRRRE9qckkifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IjBXS1p0aEpla0U2UFdXcVZTQXBaVzB5dEoxOHEzVzU1cm13RmJNWktRamcifQ","kind":"quote","id":"quote_01j3erbrnyf4z9g77t225ekavn","exchangeId":"rfq_01j3erbrnyf4yr5p7xwm0b7dk3","createdAt":"2024-07-23T02:57:37Z","protocol":"1.0"},"data":{"expiresAt":"2024-07-23T02:57:37Z","payoutUnitsPerPayinUnit":"16.665","payin":{"currencyCode":"USD","subtotal":"10","fee":"0.1","total":"10.1"},"payout":{"currencyCode":"MXN","subtotal":"500","fee":"0","total":"500"}},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJbmQyYjFkdGNVeDZjQzFPU2xod2VteFROV1l6VUVwc2FIRnNNVGhhT1haUlIxRnBRVFJSUkU5cWNra2lmUSMwIn0..sK85SbI4QgrHXOHMtCWnECmbMjHxzv3ID6zhU-84PkeHOrdyWPF5nFRMCssjN2YQNc65pK2vJBOwFEwwA_dsCQ"}`
 		msg, err := tbdex.UnmarshalMessage([]byte(vector))
 		assert.NoError(t, err)
 
@@ -106,6 +117,16 @@ func TestUnmarshalMessage(t *testing.T) {
 		order, ok := msg.(order.Order)
 		assert.True(t, ok)
 		assert.NotZero(t, order)
+	})
+
+	t.Run("orderinstructions", func(t *testing.T) {
+		vector := `{"metadata":{"from":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IjZ6eU5iUVlKNm9CY1VUS0J1enRSdTE5bmQySVVmU0tqMFVHUy1nU2I5eWMifQ","to":"did:jwk:eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6InVxSENzMjJsMFgtbUFoQzR5ZmhFZm9mYVRrMDBFQktkaW5pbEJPR3p4c2MifQ","kind":"orderinstructions","id":"orderinstructions_01j3erdh2ceq5rqdzcdc3xysam","exchangeId":"rfq_01j3erdh2ceq59brmcgd1vqd2y","createdAt":"2024-07-23T02:58:35Z","protocol":"1.0"},"data":{"payin":{"link":"http://example.com/payin/123","instruction":"deducted from stored balance"},"payout":{"link":"http://example.com/payout/123","instruction":"sent to your bank account"}},"signature":"eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDpqd2s6ZXlKcmRIa2lPaUpQUzFBaUxDSmpjbllpT2lKRlpESTFOVEU1SWl3aWVDSTZJalo2ZVU1aVVWbEtObTlDWTFWVVMwSjFlblJTZFRFNWJtUXlTVlZtVTB0cU1GVkhVeTFuVTJJNWVXTWlmUSMwIn0..d-hh6ydEq0-w7LY4BB0Sseq3-GFEvo5BBErDauXQKto_cO72ztdqeDTiZr1I-uKrqobUV_fV4d-3S9GqvTEdBw"}`
+		msg, err := tbdex.UnmarshalMessage([]byte(vector))
+		assert.NoError(t, err)
+
+		orderInstructions, ok := msg.(orderinstructions.OrderInstructions)
+		assert.True(t, ok)
+		assert.NotZero(t, orderInstructions)
 	})
 
 	t.Run("orderstatus", func(t *testing.T) {

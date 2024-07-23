@@ -71,9 +71,6 @@ func TestUnmarshal(t *testing.T) {
 		quote.NewQuoteDetails(
 			"MXN",
 			decimal.RequireFromString("500"),
-			quote.DetailsInstruction(
-				quote.NewPaymentInstruction(quote.Instruction("use link")),
-			),
 		))
 	assert.NoError(t, err)
 
@@ -209,8 +206,8 @@ func TestIsValidNext(t *testing.T) {
 		rfqID.String(),
 		time.Now().UTC().Format(time.RFC3339),
 		"16.665",
-		quote.NewQuoteDetails("USD", decimal.RequireFromString("10"), quote.DetailsInstruction(quote.NewPaymentInstruction(quote.Instruction("use link provided")))),
-		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500"), quote.DetailsInstruction(quote.NewPaymentInstruction(quote.Instruction("SPEI transfer")))),
+		quote.NewQuoteDetails("USD", decimal.RequireFromString("10")),
+		quote.NewQuoteDetails("MXN", decimal.RequireFromString("500")),
 	)
 	assert.NoError(t, err)
 

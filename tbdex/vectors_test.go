@@ -11,6 +11,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderinstructions"
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
@@ -75,6 +76,13 @@ func TestQuoteVectors(t *testing.T) {
 func TestOrderVectors(t *testing.T) {
 	vector := readVector("parse-order.json")
 	_, err := order.Parse([]byte(vector.Input))
+
+	assert.NoError(t, err)
+}
+
+func TestOrderInstructionsVectors(t *testing.T) {
+	vector := readVector("parse-orderinstructions.json")
+	_, err := orderinstructions.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }

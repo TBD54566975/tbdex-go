@@ -2,7 +2,6 @@ package orderstatus_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
@@ -34,12 +33,6 @@ func TestCreate(t *testing.T) {
 	)
 
 	assert.NoError(t, err)
-
-	j, err := json.MarshalIndent(orderstatus, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(j))
 
 	assert.NotZero(t, orderstatus.Data.Status)
 	assert.Equal(t, "PAYIN_INITIATED", orderstatus.Data.Status)
