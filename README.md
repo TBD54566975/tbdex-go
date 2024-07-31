@@ -1,3 +1,1 @@
-# tbdex-go 
-
-sdk for tbdex 
+# tbdex-go
