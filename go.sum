@@ -44,8 +44,8 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/tbd54566975/web5-go v0.18.0 h1:2SKtaIo4m7cQvOxpZvPl/duuywWW3UUKD7gXGQJHCyc=
-github.com/tbd54566975/web5-go v0.18.0/go.mod h1:7M5TGxGZY4g/eh0aoSD1h6AGr5yJXAc706wSquc8QsE=
+github.com/tbd54566975/web5-go v0.21.0 h1:QTuEg6q72Whys4QbIGHkFtZ7bhKWM+eWr6/87Hw5+Tc=
+github.com/tbd54566975/web5-go v0.21.0/go.mod h1:7M5TGxGZY4g/eh0aoSD1h6AGr5yJXAc706wSquc8QsE=
 github.com/tv42/zbase32 v0.0.0-20220222190657-f76a9fc892fa h1:2EwhXkNkeMjX9iFYGWLPQLPhw9O58BhnYgtYKeqybcY=
 github.com/tv42/zbase32 v0.0.0-20220222190657-f76a9fc892fa/go.mod h1:is48sjgBanWcA5CQrPBu9Y5yABY/T2awj/zI65bq704=
 go.jetpack.io/typeid v1.0.0 h1:8gQ+iYGdyiQ0Pr40ydSB/PzMOIwlXX5DTojp1CBeSPQ=

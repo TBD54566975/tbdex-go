@@ -8,7 +8,7 @@ require (
 	github.com/gowebpki/jcs v1.0.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/shopspring/decimal v1.1.0
-	github.com/tbd54566975/web5-go v0.18.0
+	github.com/tbd54566975/web5-go v0.21.0
 	go.jetpack.io/typeid v1.0.0
 )
 

@@ -39,7 +39,7 @@ func readVector(filename string) vector {
 	return v
 }
 
-func TestOfferingVectors(t *testing.T) {
+func parse_offering(t *testing.T) {
 	vector := readVector("parse-offering.json")
 	res := offering.Offering{}
 	err := res.Parse([]byte(vector.Input))
@@ -47,14 +47,14 @@ func TestOfferingVectors(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestBalanceVectors(t *testing.T) {
+func parse_balance(t *testing.T) {
 	vector := readVector("parse-balance.json")
 	_, err := balance.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestRFQVectors(t *testing.T) {
+func parse_rfq(t *testing.T) {
 	vector := readVector("parse-rfq.json")
 	_, err := rfq.Parse([]byte(vector.Input))
 
@@ -66,44 +66,56 @@ func TestRFQVectors(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestQuoteVectors(t *testing.T) {
+func parse_quote(t *testing.T) {
 	vector := readVector("parse-quote.json")
 	_, err := quote.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestOrderVectors(t *testing.T) {
+func parse_order(t *testing.T) {
 	vector := readVector("parse-order.json")
 	_, err := order.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestOrderInstructionsVectors(t *testing.T) {
-	vector := readVector("parse-orderinstructions.json")
-	_, err := orderinstructions.Parse([]byte(vector.Input))
-
-	assert.NoError(t, err)
-}
-
-func TestOrderStatusVectors(t *testing.T) {
+func parse_orderstatus(t *testing.T) {
 	vector := readVector("parse-orderstatus.json")
 	_, err := orderstatus.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestCloseVectors(t *testing.T) {
+func parse_close(t *testing.T) {
 	vector := readVector("parse-close.json")
 	_, err := closemsg.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
 
-func TestCancelVectors(t *testing.T) {
+func parse_cancel(t *testing.T) {
 	vector := readVector("parse-cancel.json")
 	_, err := cancel.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
+}
+
+func parse_orderinstructions(t *testing.T) {
+	vector := readVector("parse-orderinstructions.json")
+	_, err := orderinstructions.Parse([]byte(vector.Input))
+
+	assert.NoError(t, err)
+}
+
+func TestAllParsers(t *testing.T) {
+	t.Run("parse_offering", parse_offering)
+	t.Run("parse_balance", parse_balance)
+	t.Run("parse_rfq", parse_rfq)
+	t.Run("parse_quote", parse_quote)
+	t.Run("parse_order", parse_order)
+	t.Run("parse_orderinstruction", parse_orderinstructions)
+	t.Run("parse_orderstatus", parse_orderstatus)
+	t.Run("parse_close", parse_close)
+	t.Run("parse_cancel", parse_cancel)
 }
