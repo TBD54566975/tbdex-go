@@ -114,7 +114,7 @@ func TestAllParsers(t *testing.T) {
 	t.Run("parse_rfq", parse_rfq)
 	t.Run("parse_quote", parse_quote)
 	t.Run("parse_order", parse_order)
-	t.Run("parse_orderinstruction", parse_orderinstructions)
+	t.Run("parse_orderinstructions", parse_orderinstructions)
 	t.Run("parse_orderstatus", parse_orderstatus)
 	t.Run("parse_close", parse_close)
 	t.Run("parse_cancel", parse_cancel)
