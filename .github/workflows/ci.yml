@@ -32,6 +32,10 @@ jobs:
         run: |
           just test-xml
 
+      - name: Modify XML Report Names
+        run: |
+          find . -name report.xml | xargs -I{} sed -i'' -e "s/name=\"github.com\/TBD54566975\/tbdex-go\/tbdex\">/name=\"TbdexTestVectorsProtocol\">/g" {}
+
       - name: Upload Tbdex Go Test Results
         uses: actions/upload-artifact@v3
         with:
