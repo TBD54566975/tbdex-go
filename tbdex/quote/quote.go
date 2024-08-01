@@ -70,14 +70,8 @@ type QuoteDetails struct {
 	Subtotal           string              `json:"subtotal,omitempty"`
 	Fee                string              `json:"fee,omitempty"`
 	Total              string              `json:"total,omitempty"`
-	PaymentInstruction *PaymentInstruction `json:"paymentInstruction,omitempty"`
 }
 
-// PaymentInstruction contains instructions with plain text and/or a link
-type PaymentInstruction struct {
-	Link        string `json:"link,omitempty"`
-	Instruction string `json:"instruction,omitempty"`
-}
 
 // Digest computes a hash of the quote
 func (q Quote) Digest() ([]byte, error) {
@@ -211,7 +205,6 @@ func ExternalID(externalID string) CreateOption {
 
 type quoteDetailsOptions struct {
 	Fee                decimal.Decimal
-	PaymentInstruction *PaymentInstruction
 }
 
 // QuoteDetailsOption defines a type for functions that can modify the quoteDetailsOptions struct.
@@ -221,14 +214,6 @@ type QuoteDetailsOption func(*quoteDetailsOptions)
 func DetailsFee(fee decimal.Decimal) QuoteDetailsOption {
 	return func(q *quoteDetailsOptions) {
 		q.Fee = fee
-	}
-}
-
-// DetailsInstruction is an option for NewQuoteDetails that allows setting a custom [PaymentInstruction]
-// for a [QuoteDetails].
-func DetailsInstruction(p *PaymentInstruction) QuoteDetailsOption {
-	return func(q *quoteDetailsOptions) {
-		q.PaymentInstruction = p
 	}
 }
 
@@ -247,42 +232,8 @@ func NewQuoteDetails(currencyCode string, subtotal decimal.Decimal, opts ...Quot
 		Subtotal:           subtotal.String(),
 		Fee:                q.Fee.String(),
 		Total:              total.String(),
-		PaymentInstruction: q.PaymentInstruction,
 	}
 }
 
-type paymentInstructionOptions struct {
-	Link        string
-	Instruction string
-}
-
-// PaymentInstructionOptions defines a type for functions that can modify the paymentInstructionOptions struct.
-type PaymentInstructionOptions func(*paymentInstructionOptions)
-
-// InstructionLink is an option for [NewPaymentInstruction] that allows setting a custom link.
-func InstructionLink(link string) PaymentInstructionOptions {
-	return func(p *paymentInstructionOptions) {
-		p.Link = link
-	}
-}
-
-// Instruction is an option for [NewPaymentInstruction] that allows setting custom text.
-func Instruction(instruction string) PaymentInstructionOptions {
-	return func(p *paymentInstructionOptions) {
-		p.Instruction = instruction
-	}
-}
-
-// NewPaymentInstruction creates a new [PaymentInstruction] using the provided options.
-func NewPaymentInstruction(opts ...PaymentInstructionOptions) *PaymentInstruction {
-	p := paymentInstructionOptions{}
-	for _, opt := range opts {
-		opt(&p)
-	}
-	return &PaymentInstruction{
-		Link:        p.Link,
-		Instruction: p.Instruction,
-	}
-}
 
 type quote Quote

@@ -11,6 +11,7 @@ import (
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/offering"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderinstructions"
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
@@ -100,12 +101,20 @@ func parse_cancel(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func parse_orderinstructions(t *testing.T) {
+	vector := readVector("parse-orderinstructions.json")
+	_, err := orderinstructions.Parse([]byte(vector.Input))
+
+	assert.NoError(t, err)
+}
+
 func TestAllParsers(t *testing.T) {
 	t.Run("parse_offering", parse_offering)
 	t.Run("parse_balance", parse_balance)
 	t.Run("parse_rfq", parse_rfq)
 	t.Run("parse_quote", parse_quote)
 	t.Run("parse_order", parse_order)
+	t.Run("parse_orderinstructions", parse_orderinstructions)
 	t.Run("parse_orderstatus", parse_orderstatus)
 	t.Run("parse_close", parse_close)
 	t.Run("parse_cancel", parse_cancel)
