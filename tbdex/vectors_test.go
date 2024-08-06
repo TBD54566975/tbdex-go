@@ -59,9 +59,11 @@ func parse_rfq(t *testing.T) {
 	_, err := rfq.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
+}
 
-	vector = readVector("parse-rfq-omit-private-data.json")
-	_, err = rfq.Parse([]byte(vector.Input))
+func parse_rfq_omit_private_data(t *testing.T) {
+	vector := readVector("parse-rfq-omit-private-data.json")
+	_, err := rfq.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
 }
@@ -112,6 +114,7 @@ func TestAllParsers(t *testing.T) {
 	t.Run("parse_offering", parse_offering)
 	t.Run("parse_balance", parse_balance)
 	t.Run("parse_rfq", parse_rfq)
+	t.Run("parse_rfq_omit_private_data", parse_rfq_omit_private_data)
 	t.Run("parse_quote", parse_quote)
 	t.Run("parse_order", parse_order)
 	t.Run("parse_orderinstructions", parse_orderinstructions)
