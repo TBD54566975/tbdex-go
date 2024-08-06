@@ -114,7 +114,7 @@ func TestAllParsers(t *testing.T) {
 	t.Run("parse_offering", parse_offering)
 	t.Run("parse_balance", parse_balance)
 	t.Run("parse_rfq", parse_rfq)
-	//t.Run("parse_rfq_omit_private_data", parse_rfq_omit_private_data)
+	t.Run("parse_rfq_omit_private_data", parse_rfq_omit_private_data)
 	t.Run("parse_quote", parse_quote)
 	t.Run("parse_order", parse_order)
 	t.Run("parse_orderinstructions", parse_orderinstructions)
