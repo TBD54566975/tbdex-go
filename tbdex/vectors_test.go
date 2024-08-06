@@ -62,7 +62,7 @@ func parse_rfq(t *testing.T) {
 }
 
 func parse_rfq_omit_private_data(t *testing.T) {
-	vector := readVector("parse-rfq-omit-private-data")
+	vector := readVector("parse-rfq-omit-private-data.json")
 	_, err := rfq.Parse([]byte(vector.Input))
 
 	assert.NoError(t, err)
