@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	libclose "github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	libcancel "github.com/TBD54566975/tbdex-go/tbdex/cancel"
+	libclose "github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/message"
 	liborder "github.com/TBD54566975/tbdex-go/tbdex/order"
+	liborderinstructions "github.com/TBD54566975/tbdex-go/tbdex/orderinstructions"
 	liborderstatus "github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	libquote "github.com/TBD54566975/tbdex-go/tbdex/quote"
 	librfq "github.com/TBD54566975/tbdex-go/tbdex/rfq"
@@ -64,6 +65,12 @@ func UnmarshalMessage(input []byte) (Message, error) {
 		}
 
 		return order, nil
+	case liborderinstructions.Kind:
+		var orderInstructions liborderinstructions.OrderInstructions
+		if err := json.Unmarshal(input, &orderInstructions); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal orderinstructions: %w", err)
+		}
+		return orderInstructions, nil
 
 	case liborderstatus.Kind:
 		var orderStatus liborderstatus.OrderStatus
@@ -127,6 +134,14 @@ func ParseMessage(input []byte) (Message, error) {
 		}
 
 		return order, nil
+
+	case liborderinstructions.Kind:
+		orderInstructions, err := liborderinstructions.Parse(input)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse order: %w", err)
+		}
+
+		return orderInstructions, nil
 
 	case liborderstatus.Kind:
 		var orderStatus liborderstatus.OrderStatus
