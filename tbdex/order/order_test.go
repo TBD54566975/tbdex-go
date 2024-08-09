@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/TBD54566975/tbdex-go/tbdex/cancel"
 	"github.com/TBD54566975/tbdex-go/tbdex/closemsg"
 	"github.com/TBD54566975/tbdex-go/tbdex/order"
+	"github.com/TBD54566975/tbdex-go/tbdex/orderinstructions"
 	"github.com/TBD54566975/tbdex-go/tbdex/orderstatus"
 	"github.com/TBD54566975/tbdex-go/tbdex/quote"
 	"github.com/TBD54566975/tbdex-go/tbdex/rfq"
@@ -150,8 +152,10 @@ func TestIsValidNext(t *testing.T) {
 	assert.False(t, o.IsValidNext(rfq.Kind))
 	assert.False(t, o.IsValidNext(quote.Kind))
 	assert.False(t, o.IsValidNext(order.Kind))
+	assert.False(t, o.IsValidNext(orderstatus.Kind))
 
-	// order can only be followed by orderstatus or close
-	assert.True(t, o.IsValidNext(orderstatus.Kind))
+	// order can only be followed by orderinstructions, close, or cancel
+	assert.True(t, o.IsValidNext(orderinstructions.Kind))
 	assert.True(t, o.IsValidNext(closemsg.Kind))
+	assert.True(t, o.IsValidNext(cancel.Kind))
 }
